@@ -1,0 +1,12 @@
+{
+  "error_rate": 0.01,
+  "cpu": 0.4,
+  "latency_p95_ms": 180,
+  "capacity": 1.0,
+  "privilege_excess": 0.08,
+  "drift": 0.05,
+  "history": {
+    "demand": [0.55, 0.72, 0.91, 1.08, 1.18, 1.30],
+    "error_rate": [0.008, 0.009, 0.01]
+  }
+}

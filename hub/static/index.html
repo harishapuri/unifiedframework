@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How a bank ships a chatbot</title>
+  <link rel="stylesheet" href="/assets/styles.css?v=plain1" />
+</head>
+<body>
+  <header class="topbar">
+    <p class="kicker">Northstar Bank</p>
+    <h1>How a bank ships a customer chatbot</h1>
+    <p class="subtitle">Two copies of the assistant: the one customers use now, and an empty new one. We only move people after every check says go.</p>
+    <nav class="site-nav">
+      <a class="here" href="/">Home</a>
+      <a href="http://127.0.0.1:8765/">Watch the release</a>
+      <a href="http://127.0.0.1:8877/">How we decide</a>
+    </nav>
+  </header>
+
+  <section class="gif-wrap">
+    <img src="/assets/flow.gif" alt="The checks light up one by one, then the inside steps" />
+    <p class="caption">The film shows the checks in order, then what happens inside each check. Customers move only after the last box turns green.</p>
+  </section>
+
+  <section class="internal">
+    <h2>What we check, in order</h2>
+    <div class="lane"><span>The code</span><b>Read the chatbot</b>→<b>Check the server box</b>→<b>Watch live traffic</b>→<b>Did the rules pass?</b></div>
+    <div class="lane"><span>Trust</span><b>Map the network</b>→<b>Apply the trust rules</b>→<b>Find extra permissions</b>→<b>Suggest a fix</b></div>
+    <div class="lane"><span>Operations</span><b>Will it fail soon?</b>→<b>Will we run out of room?</b>→<b>How to roll it out</b>→<b>Go, wait, or stop</b></div>
+    <div class="lane"><span>Record</span><b>Collect the notes</b>→<b>Combine them</b>→<b>Pick one action</b>→<b>Sign the log</b></div>
+  </section>
+
+  <section class="cards">
+    <a class="card" href="http://127.0.0.1:8765/">
+      <span class="tag">Start here</span>
+      <h2>Watch the release</h2>
+      <p>See Login, Chatbot, Fraud, Ledger, then the traffic switch. A good release moves customers. A bad one leaves them on the old chatbot.</p>
+    </a>
+    <a class="card" href="http://127.0.0.1:8877/">
+      <span class="tag">The decision</span>
+      <h2>How we decide</h2>
+      <p>We read a security scan and live traffic, then pick one answer: go, wait, or stop. Every pick is written in a signed log.</p>
+    </a>
+  </section>
+</body>
+</html>

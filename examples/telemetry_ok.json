@@ -1,0 +1,9 @@
+{
+  "error_rate": 0.008,
+  "cpu": 0.41,
+  "latency_p95_ms": 165,
+  "capacity": 1.0,
+  "demand_forecast": 0.48,
+  "privilege_excess": 0.08,
+  "drift": 0.03
+}

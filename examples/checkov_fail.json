@@ -1,0 +1,71 @@
+{
+  "check_type": "terraform",
+  "results": {
+    "passed_checks": [
+      {
+        "check_id": "CKV_AWS_8",
+        "check_name": "Ensure all data stored in the Launch configuration EBS is securely encrypted",
+        "check_result": {"result": "PASSED"},
+        "file_path": "/infra/asg.tf",
+        "resource": "aws_launch_configuration.app",
+        "severity": "LOW"
+      },
+      {
+        "check_id": "CKV_AWS_18",
+        "check_name": "Ensure the S3 bucket has access logging enabled",
+        "check_result": {"result": "PASSED"},
+        "file_path": "/infra/s3.tf",
+        "resource": "aws_s3_bucket.logs",
+        "severity": "MEDIUM"
+      }
+    ],
+    "failed_checks": [
+      {
+        "check_id": "CKV_AWS_24",
+        "check_name": "Ensure no security groups allow ingress from 0.0.0.0/0 to port 22",
+        "check_result": {"result": "FAILED"},
+        "file_path": "/infra/sg.tf",
+        "resource": "aws_security_group.checkout",
+        "severity": "HIGH",
+        "guideline": "https://docs.prismacloud.io/CKV_AWS_24"
+      },
+      {
+        "check_id": "CKV_AWS_20",
+        "check_name": "Ensure the S3 bucket does not allow READ permissions to everyone",
+        "check_result": {"result": "FAILED"},
+        "file_path": "/infra/s3.tf",
+        "resource": "aws_s3_bucket.receipts",
+        "severity": "CRITICAL",
+        "guideline": "public bucket ACL"
+      },
+      {
+        "check_id": "CKV_AWS_40",
+        "check_name": "Ensure IAM policies that allow full '*:*' administrative privileges are not created",
+        "check_result": {"result": "FAILED"},
+        "file_path": "/infra/iam.tf",
+        "resource": "aws_iam_policy.checkout_admin",
+        "severity": "CRITICAL",
+        "guideline": "wildcard IAM"
+      },
+      {
+        "check_id": "CKV_AWS_16",
+        "check_name": "Ensure all data stored in the RDS is securely encrypted at rest",
+        "check_result": {"result": "FAILED"},
+        "file_path": "/infra/rds.tf",
+        "resource": "aws_db_instance.ledger",
+        "severity": "HIGH",
+        "guideline": "encrypt_at_rest"
+      }
+    ],
+    "skipped_checks": [],
+    "parsing_errors": []
+  },
+  "summary": {
+    "passed": 2,
+    "failed": 4,
+    "skipped": 0,
+    "parsing_errors": 0,
+    "resource_count": 12,
+    "checkov_version": "3.2.0"
+  }
+}

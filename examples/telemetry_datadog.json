@@ -1,0 +1,13 @@
+{
+  "series": [
+    {"metric": "system.cpu.user", "points": [[1, 0.41], [2, 0.40]]},
+    {"metric": "trace.http.request.errors", "points": [[1, 0.008], [2, 0.009]]},
+    {"metric": "trace.http.request.duration.p95", "points": [[1, 160], [2, 165]]}
+  ],
+  "capacity": 1.0,
+  "privilege_excess": 0.08,
+  "drift": 0.03,
+  "history": {
+    "demand": [0.40, 0.42, 0.44, 0.46, 0.47, 0.48]
+  }
+}

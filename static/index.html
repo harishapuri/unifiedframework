@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How we decide — Northstar Bank</title>
+<link rel="stylesheet" href="/assets/styles.css?v=plain1" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="kicker">Northstar Bank</div>
+    <div class="title">How a bank ships a customer chatbot</div>
+    <div class="subtitle">We read the scan, check trust, guess if it will stay up, then pick one answer: go, wait, or stop.</div>
+    <nav class="site-nav">
+      <a href="http://127.0.0.1:8800/">Home</a>
+      <a href="http://127.0.0.1:8765/">Watch the release</a>
+      <a class="here" href="/">How we decide</a>
+    </nav>
+  </header>
+
+  <section class="how">
+    <div><b>Blue</b>The chatbot customers are talking to right now.</div>
+    <div><b>Green</b>The empty new copy. No customers until we say go.</div>
+    <div><b>Go</b>Send customers to the new chatbot.</div>
+    <div><b>Stop</b>Keep customers on the old chatbot.</div>
+  </section>
+
+  <nav class="artifact-row" id="artifactRow">
+    <button class="artifact" data-target="crc">Chatbot code</button>
+    <button class="artifact" data-target="crc">Server box</button>
+    <button class="artifact" data-target="zeroguard">Network setup</button>
+    <button class="artifact" data-target="infraagent">Live traffic</button>
+    <button class="artifact" data-target="zeroguard">Who can do what</button>
+  </nav>
+
+  <main>
+    <section class="story-row">
+      <span class="story-label">Try a release:</span>
+      <button class="story-btn" data-story="pass">All clear — go</button>
+      <button class="story-btn" data-story="warn_capacity">Almost full — wait</button>
+      <button class="story-btn" data-story="warn_rising_errors">Errors rising — wait</button>
+      <button class="story-btn" data-story="fail">Unsafe setup — stop</button>
+      <button class="story-btn" data-story="secure_but_hot">Safe setup, bad traffic</button>
+      <button class="story-btn" data-story="open_sg_but_calm">Quiet traffic, open door</button>
+      <button class="story-btn" data-story="rollback">Site is down — undo</button>
+      <button class="story-btn auto" id="autoplayBtn">▶ Play every story</button>
+    </section>
+
+    <div class="scenario-blurb" id="scenarioBlurb">Pick a story, or play them all. Customers stay on the old chatbot until we say go.</div>
+
+    <section class="flow-diagram" id="flowDiagram">
+      <div class="flow-node" data-stage="ingest">
+        <div class="flow-dot"></div>
+        <div class="flow-name">Read the scan</div>
+        <div class="flow-detail" id="flowIngest">Security scan + live traffic</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" data-stage="crc">
+        <div class="flow-dot"></div>
+        <div class="flow-name">The code</div>
+        <div class="flow-detail" id="flowCrc">Did the rules pass?</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" data-stage="zeroguard">
+        <div class="flow-dot"></div>
+        <div class="flow-name">Trust</div>
+        <div class="flow-detail" id="flowZeroguard">Is the setup locked down?</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" data-stage="infraagent">
+        <div class="flow-dot"></div>
+        <div class="flow-name">Stay-up</div>
+        <div class="flow-detail" id="flowInfraagent">Will it stay healthy?</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" data-stage="gate">
+        <div class="flow-dot"></div>
+        <div class="flow-name">Decision</div>
+        <div class="flow-detail" id="flowGate">Go / wait / stop</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" data-stage="audit">
+        <div class="flow-dot"></div>
+        <div class="flow-name">Signed log</div>
+        <div class="flow-detail" id="flowAudit">Written down and sealed</div>
+      </div>
+    </section>
+
+    <section class="internal">
+      <h2>What we check, in order</h2>
+      <div class="lane"><span>The code</span><b>Read the chatbot</b>→<b>Check the server box</b>→<b>Watch live traffic</b>→<b>Did the rules pass?</b></div>
+      <div class="lane"><span>Trust</span><b>Map the network</b>→<b>Apply the trust rules</b>→<b>Find extra permissions</b>→<b>Suggest a fix</b></div>
+      <div class="lane"><span>Operations</span><b>Will it fail soon?</b>→<b>Will we run out of room?</b>→<b>How to roll it out</b>→<b>Go, wait, or stop</b></div>
+      <div class="lane"><span>Record</span><b>Collect the notes</b>→<b>Combine them</b>→<b>Pick one action</b>→<b>Sign the log</b></div>
+    </section>
+
+    <section id="gateBanner" class="gate-banner hidden">
+      <div class="gate-action" id="gateAction">—</div>
+      <div class="gate-reasons" id="gateReasons"></div>
+    </section>
+
+    <section class="planes" id="planes">
+      <article class="plane" id="crc">
+        <h2>The code <span class="tag">did the rules pass?</span></h2>
+        <div class="metric-row">
+          <div class="metric"><span class="metric-label">rules passed</span><span class="metric-value" id="crcEta">—</span></div>
+          <div class="metric"><span class="metric-label">leftover risk</span><span class="metric-value" id="crcResidual">—</span></div>
+        </div>
+        <div class="metric-row">
+          <div class="metric"><span class="metric-label">passed</span><span class="metric-value" id="crcPassed">—</span></div>
+          <div class="metric"><span class="metric-label">failed</span><span class="metric-value" id="crcFailed">—</span></div>
+        </div>
+        <div class="subhead">Top failed checks</div>
+        <ul class="findings" id="crcFindings"></ul>
+      </article>
+
+      <article class="plane" id="zeroguard">
+        <h2>Trust <span class="tag">is the setup locked down?</span></h2>
+        <div class="metric-row">
+          <div class="metric"><span class="metric-label">trust</span><span class="metric-value" id="zgPsi">—</span></div>
+          <div class="metric"><span class="metric-label">posture</span><span class="metric-value" id="zgXi">—</span></div>
+          <div class="metric"><span class="metric-label">extra access</span><span class="metric-value" id="zgGamma">—</span></div>
+        </div>
+        <div class="subhead">Trust rules we check</div>
+        <div class="pillars" id="zgPillars"></div>
+      </article>
+
+      <article class="plane" id="infraagent">
+        <h2>Stay-up <span class="tag">will it stay healthy?</span></h2>
+        <div class="metric-row">
+          <div class="metric"><span class="metric-label">stay-up</span><span class="metric-value" id="iaOmega">—</span></div>
+          <div class="metric"><span class="metric-label">need more room</span><span class="metric-value" id="iaKappa">—</span></div>
+        </div>
+        <div class="subhead">Chance of trouble</div>
+        <div class="horizon-row" id="iaHorizons"></div>
+      </article>
+    </section>
+
+    <section class="lower-row">
+      <div class="audit" id="auditSection">
+        <h2>Signed log <span class="tag" id="chainOk">—</span></h2>
+        <div class="audit-entry" id="auditEntry">Play a story to see the signed record.</div>
+        <div class="subhead">Notes collected this run</div>
+        <ul class="bus-log" id="busLog"></ul>
+      </div>
+
+      <div class="live-log" id="liveLogSection">
+        <h2>What just happened <span class="tag">step by step</span></h2>
+        <ul class="event-log" id="eventLog">
+          <li class="log-empty">Waiting…</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">Customers move only after the code, trust, and stay-up checks all agree</footer>
+
+  <script src="/assets/app.js?v=plain1"></script>
+</body>
+</html>
