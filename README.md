@@ -2,7 +2,7 @@
 
 One closed-loop CI/CD decision system. A Checkov scan and a telemetry window go in. **One pick** comes out: go, wait, or stop — plus fused scores and a SHA-256 audit row.
 
-This folder is the **Checkov-fed gate** (stdlib Python). The bank chatbot page in `~/Desktop/EB2NIW` is a **story**. The story illustrates the mechanism. It is not a measured evaluation. Do not file story-page numbers as results.
+This folder is the **Checkov-fed gate** (stdlib Python). A separate bank-chatbot page can illustrate the same mechanism as a **story**. The story is not a measured evaluation. Do not file story-page numbers as results.
 
 The three source papers are cooperating planes, not three products:
 
@@ -66,26 +66,16 @@ Full figures: [ARCHITECTURE.md](ARCHITECTURE.md). Industry comparison: [INDUSTRY
 
 | Port | Command | What it is |
 | --- | --- | --- |
-| **8800** | `python3 -m hub` | Home + completed-flow GIF. Links to the other two. |
+| **8800** | `python3 -m hub` | Home + completed-flow GIF. Links to the gate demo. |
 | **8877** | `python3 -m framework.webdemo` | **Proof.** Real pipeline, staged. Checkov fixtures. Go / wait / stop. |
-| **8765** | from `~/Desktop/EB2NIW`: `.venv/bin/python -m app.main` | **Story.** Blue/green chatbot narrative. Synthetic sensors. Not an evaluation. |
 
-Start the gate and hub from this folder (Python 3.9+, no extra packages):
+Start both from this folder (Python 3.9+, no extra packages):
 
 ```bash
 cd unified_framework
 python3 -m framework.webdemo    # http://127.0.0.1:8877
 python3 -m hub                  # http://127.0.0.1:8800
 ```
-
-Story site (needs the EB2NIW venv: FastAPI, numpy, sklearn):
-
-```bash
-cd ~/Desktop/EB2NIW
-.venv/bin/python -m app.main    # http://127.0.0.1:8765
-```
-
-Hard-refresh the story page after UI changes (`app.js?v=plain2`).
 
 ---
 
@@ -197,7 +187,7 @@ See `examples/telemetry_ok.json`, `telemetry_hot.json`, `telemetry_datadog.json`
 
 ## Planes (shipped here vs story app)
 
-| Step | This repo (8877 / CLI) | EB2NIW story (8765) |
+| Step | This repo (8877 / CLI) | Story demo (synthetic sensors) |
 | --- | --- | --- |
 | CRC sensors | Checkov passed/failed + debt | GBDT code, RF+SVM image, IaC scorer, IsolationForest |
 | CRC score | η, residual-high, critical IaC | Same idea from detectors + NIST/CIS/SOC2/PCI |
