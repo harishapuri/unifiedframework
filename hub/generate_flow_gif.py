@@ -38,7 +38,7 @@ LANES = [
     ("CRC sensors", [("Code GB", "snippet risk"), ("Container", "image ensemble"), ("IsoForest", "chat telemetry"), ("η residual", "policy score")]),
     ("ZeroGuard", [("ICA", "resource graph"), ("ZTPA", "7 pillars"), ("IAEA", "IAM excess Γ"), ("GRA", "patch + Rego")]),
     ("InfraAgent", [("T-GAN", "φ 1h/6h/24h"), ("CFA", "capacity κ"), ("RPA", "rollout"), ("DSA", "α2 gate")]),
-    ("Shared backbone", [("Bus", "priority queue"), ("Orchestrator", "η Ψ Ω"), ("DQN", "ALLOW/BLOCK"), ("Audit", "SHA-256")]),
+    ("Shared backbone", [("Bus", "priority queue"), ("MAWS hive", "named agents"), ("DSA α2", "ALLOW/BLOCK"), ("Audit", "SHA-256")]),
 ]
 
 

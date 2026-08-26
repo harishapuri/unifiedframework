@@ -1,8 +1,8 @@
 # Complete architecture
 
-Three papers, one closed loop. CRC, ZeroGuard, and InfraAgent share a bus, an orchestrator, a signed audit, and a **single go / wait / stop**. The bank chatbot is the illustration at the bottom — not a separate product.
+Three scoring papers plus a **MAWS hive**. CRC, ZeroGuard, and InfraAgent still share a bus, a signed audit, and a **single go / wait / stop**. [MAWS](https://github.com/harishapuri/MAWS) is the supervisor: it assigns named agents, publishes on the bus, and compensates stop/wait by staying on blue. It is not a fourth score. The bank chatbot is the illustration at the bottom — not a separate product.
 
-## All in one — upstream to downstream
+## All in one — MAWS hive, upstream to downstream
 
 ```mermaid
 flowchart TB
@@ -14,62 +14,76 @@ flowchart TB
     DEM[Demand]
   end
 
-  SRC --> IN[Ingest mapper]
+  subgraph hive [MAWS hive]
+    SUP[Supervisor]
+    IN[IngestAgent]
+    AgCrc[CrcAgent]
+    AgZg[ZeroGuardAgent]
+    AgIa[InfraAgent]
+    AgDsa[DsaAgent]
+    RPA[RpaAgent suggest only]
+    AUD[AuditAgent]
+    SUP -->|assign| IN
+    SUP -->|assign| AgCrc
+    SUP -->|assign| AgZg
+    SUP -->|assign| AgIa
+    SUP -->|assign| AgDsa
+    SUP -->|assign| RPA
+    SUP -->|assign| AUD
+  end
+
+  SRC --> IN
   IMG --> IN
   IAC --> IN
   TEL --> IN
   DEM --> IN
 
-  IN --> CRC
-  IN --> ZG
-  IN --> IA
-
-  subgraph CRC[CRC rules]
+  subgraph planeCrc [CRC rules]
     direction TB
-    GBDT[GBDT vuln] --> ENS[RF+SVM image]
+    GBDT[GBDT vuln] --> ENS[RF plus SVM image]
     ENS --> IACS[IaC scorer]
     IACS --> ISO[IsolationForest]
     ISO --> CTL[NIST CIS SOC2 PCI]
-    CTL --> ETA["η + residual"]
+    CTL --> ETA["eta plus residual"]
   end
 
-  subgraph ZG[ZeroGuard trust]
+  subgraph planeZg [ZeroGuard trust]
     direction TB
     ICA[ICA graph] --> ZTPA[ZTPA attention]
-    ZTPA --> PILL["P1–P7 Ξ σ"]
-    PILL --> IAEA[IAEA Γ]
-    IAEA --> GRA[GRA + SIS]
-    GRA --> PSI["Ψ × η"]
+    ZTPA --> PILL["P1 to P7"]
+    PILL --> IAEA[IAEA Gamma]
+    IAEA --> GRA[GRA plus SIS]
+    GRA --> PSI["Psi times eta"]
   end
 
-  subgraph IA[InfraAgent stay-up]
+  subgraph planeIa [InfraAgent stay-up]
     direction TB
     TGAN[T-GAN conv] --> ATTN[Neighbor attention]
-    ATTN --> PHI["φ 1h 6h 24h"]
+    ATTN --> PHI["phi 1h 6h 24h"]
     PHI --> CFA[CFA Holt]
-    CFA --> KAP["κ 24 48 72h"]
-    KAP --> OME["Ω × η"]
+    CFA --> KAP["kappa"]
+    KAP --> OME["Omega times eta"]
   end
 
-  ETA --> BUS[Fuse on typed bus]
+  AgCrc --> ETA
+  AgZg --> PSI
+  AgIa --> OME
+  ETA --> BUS[Typed bus]
   PSI --> BUS
   OME --> BUS
-
-  BUS --> DSA{DSA go / wait / stop}
-
-  DSA -->|stop| BLUE[Stay on blue]
-  DSA -->|wait| HOLD[Hold / 10% canary]
-  DSA -->|go| GREEN[Move customers to green]
-
-  BLUE --> SUG1[Suggest hold / rollback]
-  HOLD --> SUG2[Suggest scale / canary]
-  GREEN --> SUG3[Suggest promote]
-
-  SUG1 --> AUD[SHA-256 audit]
-  SUG2 --> AUD
-  SUG3 --> AUD
-  AUD --> SC[Scorecard then --enforce]
+  BUS --> AgDsa
+  AgDsa -->|stop| BLUE[Stay on blue]
+  AgDsa -->|wait| HOLD[Hold or canary]
+  AgDsa -->|go| GREEN[Move to green]
+  SUP -->|compensate| BLUE
+  BLUE --> RPA
+  HOLD --> RPA
+  GREEN --> RPA
+  RPA --> AUD
+  AUD --> SC[Scorecard then enforce]
 ```
+
+CRC still runs **before** ZeroGuard and InfraAgent because η multiplies Ψ and Ω. RPA `apply = false`.
 
 ```
 Artifacts          Checkov / tfsec JSON          Datadog / Prometheus
@@ -77,13 +91,17 @@ Artifacts          Checkov / tfsec JSON          Datadog / Prometheus
                          │                              │
                          └──────────┬───────────────────┘
                                     ▼
-                         Ingest + alias mapper
+                         MAWS Supervisor (task allocation)
+                     sibling ../maws  or  vendor/maws
+                     framework/flow.py → iter_maws
+                                    │
+                         IngestAgent
                      framework/ingest/checkov.py
                      framework/ingest/telemetry.py
                                     │
               ┌─────────────────────┼─────────────────────┐
               ▼                     ▼                     ▼
-        CRC — rules           ZeroGuard — trust     InfraAgent — stay-up
+        CrcAgent              ZeroGuardAgent         InfraAgent
         η, residual           7 NIST pillars        φ_1h / φ_6h / φ_24h
         critical IaC          Ξ, Γ, Ψ               Holt κ, Ω
         RiskReport            ZtaScore              Forecast
@@ -91,21 +109,22 @@ Artifacts          Checkov / tfsec JSON          Datadog / Prometheus
               │                     │                     │
               └─────────────────────┼─────────────────────┘
                                     ▼
-                    Typed priority bus + orchestrator
+                    Typed priority bus  (MAWS environment)
               safety > identity > capacity > advisory
               file-backed (audit.jsonl.bus); Redis optional
                                     │
                                     ▼
-                         DSA gate  (autonomy α2)
+                         DsaAgent  (autonomy α2)
               ALLOW | WARN | BLOCK_BUILD |
               BLOCK_DEPLOYMENT | ROLLBACK
               DQN cannot ALLOW through a BLOCK
                      │                    │
                      ▼                    ▼
-              RPA suggest-only      SHA-256 audit chain
-              apply = false         immutable hash link
-              GRA wins security     Outcome sidecar
-                                    scorecard
+              RpaAgent suggest-only   AuditAgent SHA-256
+              apply = false           immutable hash link
+              GRA wins security       Outcome sidecar
+              Supervisor compensates  scorecard
+              stay-on-blue on wait/stop
                                     │
                                     ▼
                          Traffic switch LAST
@@ -123,23 +142,24 @@ flowchart LR
     HIST[Demand history]
   end
 
-  subgraph gate [Unified gate]
-    IN[Ingest mapper]
-    CRC[CRC rules]
-    ZG[ZeroGuard trust]
-    IA[InfraAgent stay-up]
-    BUS[Bus + orchestrator]
-    DSA[DSA go / wait / stop]
-    IN --> CRC --> BUS
+  subgraph hive [MAWS hive]
+    SUP[Supervisor]
+    IN[IngestAgent]
+    CRC[CrcAgent]
+    ZG[ZeroGuardAgent]
+    IA[InfraAgent]
+    BUS[MessageBus]
+    DSA[DsaAgent]
+    SUP --> IN --> CRC --> BUS
     IN --> ZG --> BUS
     IN --> IA --> BUS
     BUS --> DSA
   end
 
   subgraph evidence [Evidence]
-    AUD[SHA-256 audit]
+    AUD[AuditAgent]
     SC[Outcome scorecard]
-    RPA[Suggest-only patches]
+    RPA[RpaAgent suggest only]
   end
 
   subgraph effect [Effect]
@@ -154,45 +174,55 @@ flowchart LR
   DSA --> RPA
   DSA -->|go| GRN
   DSA -->|wait or stop| BLU
+  SUP -->|compensate| BLU
 ```
 
 ## One pipeline run
 
 ```mermaid
 sequenceDiagram
-  participant CI as CI / CLI
-  participant In as Ingest
-  participant CRC as CRC
-  participant ZG as ZeroGuard
+  participant CLI as CLI or demo
+  participant Sup as MAWS Supervisor
+  participant In as IngestAgent
+  participant CRC as CrcAgent
+  participant ZG as ZeroGuardAgent
   participant IA as InfraAgent
   participant Bus as Bus
-  participant DSA as DSA gate
-  participant Aud as Audit
-  participant Ops as Release
+  participant DSA as DsaAgent
+  participant Rpa as RpaAgent
+  participant Aud as AuditAgent
 
-  CI->>In: Checkov JSON + metrics
+  CLI->>Sup: Checkov JSON + metrics
+  Sup->>In: load scan
   In->>CRC: findings
-  CRC->>Bus: RiskReport η
+  CRC->>Bus: RiskReport source CrcAgent
   In->>ZG: findings + telemetry
-  ZG->>Bus: ZtaScore Ψ
+  ZG->>Bus: ZtaScore source ZeroGuardAgent
   In->>IA: telemetry + history
-  IA->>Bus: Forecast Ω φ κ
-  Bus->>DSA: fused scores
+  IA->>Bus: Forecast source InfraAgent
+  Sup->>DSA: fuse and decide
+  DSA->>Bus: GateDecision
+  alt BLOCK or WARN
+    Sup->>Sup: compensate stay on blue
+  else ALLOW
+    Sup->>Sup: green allowed apply still false
+  end
+  DSA->>Rpa: suggest only
+  Rpa->>Bus: PatchSet apply false
   DSA->>Aud: action + traces + prev hash
-  DSA->>Ops: go / wait / stop
-  Note over DSA: PatchSet apply=false
-  Ops-->>Aud: later: ok / incident / rollback
+  Note over DSA: never auto-apply
 ```
 
-## Three planes
+## Three planes plus the hive
 
-| Plane | Paper | Shipped in this repo | Story / later (EB2NIW) | Question it answers |
-|---|---|---|---|---|
-| **CRC** | 207 | Checkov → η, debt, residual-high | Code / image / runtime detectors, constrained DQN | Did the scanner find trouble? |
-| **ZeroGuard** | 2143 | 7 NIST SP 800-207 pillars, Ξ, Γ, Ψ | ICA, ZTPA, IAEA, GRA + Rego | Open doors or extra permissions? |
-| **InfraAgent** | 1239 | Heuristic φ, Holt κ, Ω, DSA, suggest-only RPA | T-GAN window, CFA bands | Will it fail or run out of room? |
+| Plane | Paper | Shipped | Question it answers |
+|---|---|---|---|
+| **MAWS** | Agentic workflows | Supervisor, named agents, bus as environment, stay-on-blue compensation. Repo: [MAWS](https://github.com/harishapuri/MAWS) | Who assigns the work, and does anyone auto-apply? No. |
+| **CRC** | 207 | Checkov → η, debt, residual-high | Did the scanner find trouble? |
+| **ZeroGuard** | 2143 | 7 NIST SP 800-207 pillars, Ξ, Γ, Ψ | Open doors or extra permissions? |
+| **InfraAgent** | 1239 | Heuristic φ, Holt κ, Ω, DSA, suggest-only RPA | Will it fail or run out of room? |
 
-Join: **η multiplies both Ψ and Ω.** One orchestrator run publishes all three before the gate.
+Join: **η multiplies both Ψ and Ω.** MAWS publishes all three on the bus before DsaAgent speaks. CRC still runs first.
 
 ## Gate
 
@@ -302,11 +332,14 @@ flowchart TB
 ## How they meet
 
 ```
+MAWS Supervisor assigns agents
+              ↓
 CRC η  ×  ZeroGuard Ψ  and  InfraAgent Ω
               ↓
-        one DSA pick
+        DsaAgent one pick
               ↓
-   suggest-only patch   +   SHA-256 audit
+   RpaAgent suggest-only  +  AuditAgent SHA-256
+   compensate: stay on blue unless go
               ↓
      later: ok / incident / rollback
 ```
