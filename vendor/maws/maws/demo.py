@@ -61,8 +61,11 @@ class DemoHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def _sse_write(self, event: dict) -> None:
-        self.wfile.write(f"data: {json.dumps(event)}\n\n".encode())
-        self.wfile.flush()
+        try:
+            self.wfile.write(f"data: {json.dumps(event, default=str)}\n\n".encode())
+            self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError):
+            raise
 
     def _stream_stories(self, story_keys: list[str]) -> None:
         self.send_response(200)
@@ -95,10 +98,22 @@ class DemoHandler(BaseHTTPRequestHandler):
                 ):
                     ev["story"] = story
                     self._sse_write(ev)
-                    time.sleep(float(ev.get("wait", 0.4)))
+                time.sleep(float(ev.get("wait", 0.4)))
             self._sse_write({"stage": "stream_done", "wait": 0.0, "detail": {}})
         except (BrokenPipeError, ConnectionResetError):
             pass
+        except Exception as exc:
+            try:
+                self._sse_write(
+                    {
+                        "stage": "error",
+                        "wait": 0.0,
+                        "detail": {"error": str(exc)},
+                    }
+                )
+            except Exception:
+                pass
+            print(f"maws demo stream failed: {exc}", flush=True)
 
     def do_OPTIONS(self) -> None:  # noqa: N802
         send_options(self)
@@ -122,6 +137,18 @@ class DemoHandler(BaseHTTPRequestHandler):
             result = Orchestrator(DEMO_AUDIT).run(checkov_path, telemetry_path, service=service, shadow=True)
             result["story"] = story
             self._send_json(result)
+            return
+        if parsed.path == "/api/automate":
+            from maws.automate import run_all
+
+            rows = run_all(STORY_ORDER)
+            self._send_json(
+                {
+                    "plane": "maws",
+                    "stories": rows,
+                    "passed": all(r["ok"] for r in rows),
+                }
+            )
             return
         if parsed.path == "/api/stream":
             qs = parse_qs(parsed.query)

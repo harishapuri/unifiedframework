@@ -108,6 +108,13 @@ def iter_maws(
         detail={**decision, "remediation": remediation, "compensation": compensation},
     )
     yield _event(
+        "rpa",
+        wait=0.35,
+        agent="RpaAgent",
+        task="suggest_only",
+        detail=remediation,
+    )
+    yield _event(
         "compensate",
         wait=0.35,
         agent="Supervisor",

@@ -16,6 +16,7 @@ const API_BASE = FROM_FILE ? (DEMO.origin || "http://127.0.0.1:8871") : "";
 
 let currentSource = null;
 let sawEvent = false;
+let playingAll = false;
 
 function showOffline(on) {
   const el = document.getElementById("offlineBanner");
@@ -279,7 +280,10 @@ function handleEvent(ev) {
       logEvent(ev, `Decision: <b>${word}</b> — ${ev.detail.reasons.join("; ")}`);
       break;
     }
-    case "compensate":
+    case "rpa":
+      noteHive(ev, "suggest only");
+      logEvent(ev, "RPA suggest-only — apply stays false");
+      break;
       noteHive(ev, ev.detail && ev.detail.policy);
       logEvent(ev, ev.detail && ev.detail.blue_stays_live
         ? "MAWS compensation: stay on blue. Do not apply patches."
@@ -299,7 +303,18 @@ function handleEvent(ev) {
       break;
     case "stream_done":
       setAutoplayRunning(false);
+      playingAll = false;
       logEvent(ev, "— all stories finished —");
+      break;
+    case "error":
+      setAutoplayRunning(false);
+      playingAll = false;
+      logEvent(ev, `Demo stream failed: ${(ev.detail && ev.detail.error) || "unknown error"}`);
+      break;
+    case "automate":
+      logEvent(ev, ev.detail && ev.detail.passed
+        ? `Automate: all ${ev.detail.count} stories matched expected picks.`
+        : "Automate failed: a story pick drifted.");
       break;
     default:
       break;
@@ -315,21 +330,25 @@ function startStream(story) {
   showOffline(false);
   const es = new EventSource(`${API_BASE}/api/stream?story=${encodeURIComponent(story)}`);
   currentSource = es;
+  playingAll = story === "all";
   if (story === "all") setAutoplayRunning(true);
+  else setAutoplayRunning(false);
   es.onmessage = (msg) => {
     sawEvent = true;
     showOffline(false);
     const ev = JSON.parse(msg.data);
     handleEvent(ev);
-    if (ev.stage === "stream_done") {
+    if (ev.stage === "stream_done" || ev.stage === "error") {
       es.close();
       currentSource = null;
+      playingAll = false;
     }
   };
   es.onerror = () => {
     es.close();
     currentSource = null;
     setAutoplayRunning(false);
+    playingAll = false;
     if (!sawEvent) showOffline(true);
   };
 }
@@ -338,16 +357,45 @@ document.querySelectorAll(".story-btn:not(.auto)").forEach((btn) => {
   btn.addEventListener("click", () => startStream(btn.dataset.story));
 });
 
-document.getElementById("autoplayBtn").addEventListener("click", () => {
-  if (currentSource) {
-    currentSource.close();
-    currentSource = null;
-    setAutoplayRunning(false);
-    logEvent({ stage: "manual" }, "— autoplay stopped by user —");
-    return;
-  }
-  startStream("all");
-});
+const autoplayBtn = document.getElementById("autoplayBtn");
+if (autoplayBtn) {
+  autoplayBtn.addEventListener("click", () => {
+    if (playingAll && currentSource) {
+      currentSource.close();
+      currentSource = null;
+      playingAll = false;
+      setAutoplayRunning(false);
+      logEvent({ stage: "manual" }, "— autoplay stopped by user —");
+      return;
+    }
+    startStream("all");
+  });
+}
+
+const automateBtn = document.getElementById("automateBtn");
+if (automateBtn) {
+  automateBtn.addEventListener("click", async () => {
+    showOffline(false);
+    automateBtn.disabled = true;
+    try {
+      const res = await fetch(`${API_BASE}/api/automate`);
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      handleEvent({ stage: "automate", detail: { passed: data.passed, count: (data.stories || []).length } });
+      (data.stories || []).forEach((row) => {
+        logEvent(
+          { stage: "manual" },
+          `${row.ok ? "ok" : "FAIL"} ${row.story}: ${row.action}${row.ok ? "" : " (expected " + row.expected.action + ")"}`
+        );
+      });
+    } catch (err) {
+      showOffline(true);
+      logEvent({ stage: "manual" }, "Automate request failed — start python3 -m maws.demo");
+    } finally {
+      automateBtn.disabled = false;
+    }
+  });
+}
 
 document.querySelectorAll(".artifact").forEach((btn) => {
   btn.addEventListener("click", () => {
