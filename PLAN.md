@@ -66,7 +66,7 @@ Artifacts (code, image, IaC, telemetry)
 | Message bus | Kinds: `RiskReport`, `ZtaScore`, `IamProposal`, `PatchSet`, `Forecast`, `GateDecision`, `Outcome`. Priority: safety > identity > capacity > advisory |
 | Audit chain | SHA-256 of `{event, traces, action, outcome, prev}` |
 | Knowledge store | Cosine over bag-of-features (RAG stand-in) keyed by smell / failure class — **not shipped** |
-| Orchestrator | Every run emits CRC + ZeroGuard + InfraAgent before DSA. If GRA (security patch) and RPA (rollout) hit the same service later: **GRA wins security attributes; RPA owns traffic and capacity** |
+| Orchestrator | MAWS hive (`../maws` or `vendor/maws`): named agents, bus environment, α2, stay-on-blue compensation. Every run still emits CRC + ZeroGuard + InfraAgent before DSA. GRA wins security attributes; RPA owns traffic and capacity. |
 
 ### 2.2 CRC plane
 

@@ -30,7 +30,7 @@ def _events(checkov: Path, telemetry: Path) -> list[dict]:
 class StagedFlow(unittest.TestCase):
     def test_stage_order_matches_declared_stages(self) -> None:
         events = _events(PASS, WARN_PHI6)
-        seen = [e["stage"] for e in events if e["stage"] != "ingested"]
+        seen = [e["stage"] for e in events if e["stage"] in STAGES]
         self.assertEqual(seen, list(STAGES))
 
     def test_every_event_has_wait_and_detail(self) -> None:

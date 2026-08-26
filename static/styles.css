@@ -145,6 +145,43 @@ main { padding: 0 32px 32px; }
 .lane span { min-width: 88px; color: var(--accent); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
 .lane b { color: var(--text); font-weight: 600; }
 
+.hive {
+  margin: 0 32px 18px;
+  padding: 14px 16px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+}
+.hive-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.hive-cells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.hive-cell {
+  font-size: 11px;
+  padding: 6px 10px;
+  border: 1px solid var(--panel-border);
+  color: var(--muted);
+}
+.hive-cell.seen { color: var(--text); border-color: #3a4158; }
+.hive-cell.active {
+  color: var(--text);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(91,127,255,0.35);
+}
+.hive-task {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
 .flow-diagram {
   display: flex;
   align-items: stretch;

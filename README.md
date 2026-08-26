@@ -18,6 +18,7 @@ cd unifiedframework
 | [infraagent](https://github.com/harishapuri/infraagent) | CRC (207) — rules / CI-CD | http://127.0.0.1:8871/ · `python3 -m cicd.demo` |
 | [CICD_Compliance](https://github.com/harishapuri/CICD_Compliance) | InfraAgent (1239) — stay-up | http://127.0.0.1:8872/ · `python3 -m infra.demo` |
 | [ZeroGuard](https://github.com/harishapuri/ZeroGuard) | ZeroGuard (2143) — trust | http://127.0.0.1:8873/ · `python3 -m zeroguard.demo` |
+| [MAWS](https://github.com/harishapuri/MAWS) | MAWS hive orchestrator | http://127.0.0.1:8874/ · `python3 -m maws.demo` |
 | **This repo** | Fused gate (all three) | http://127.0.0.1:8877/ · `python3 -m framework.webdemo` |
 
 Each plane repo vendors a snapshot of this library under `vendor/unified_framework`. Set `UNIFIED_FRAMEWORK` to this checkout to override vendor. Each plane GitHub repo has its own `ARCHITECTURE.md`, `INDUSTRY_VS_OURS.md`, and `PLAN.md` written for that plane. This repo’s copies: [ARCHITECTURE.md](ARCHITECTURE.md), [INDUSTRY_VS_OURS.md](INDUSTRY_VS_OURS.md), [PLAN.md](PLAN.md).
@@ -31,6 +32,8 @@ The three source papers are cooperating planes, not three products:
 | InfraAgent (1239) | Stay-up | Will it fail soon, or will we run out of room? |
 
 Join rule: CRC policy adherence **η** multiplies both ZeroGuard posture **Ψ** and InfraAgent posture **Ω**. Then one DSA gate speaks. A security suggestion beats a rollout suggestion. Suggested patches are never auto-applied.
+
+The **[MAWS](https://github.com/harishapuri/MAWS)** repo is the supervisor hive (`iter_flow` delegates to `maws.supervisor.iter_maws` when that package is on disk). It does not change the scores.
 
 This folder is the **Checkov-fed gate** (stdlib Python). A separate bank-chatbot page can illustrate the same mechanism as a **story**. The story is not a measured evaluation. Do not file story-page numbers as results.
 
@@ -222,7 +225,7 @@ Same join. Different sensors. The petition proof is **this** repo on real Checko
 ## Tests
 
 ```bash
-python3 -m unittest tests.test_gate tests.test_flow tests.test_improvements tests.test_audit -v
+python3 -m unittest tests.test_gate tests.test_flow tests.test_improvements tests.test_audit tests.test_maws -v
 ```
 
 Covers fail/pass/cross-plane stories, shadow vs `--enforce`, Holt capacity, Datadog mapping, durable bus, two-writer audit (no fork), and repair of a broken chain.
@@ -233,7 +236,8 @@ Covers fail/pass/cross-plane stories, shadow vs `--enforce`, Holt capacity, Data
 
 | Path | Role |
 | --- | --- |
-| [framework/flow.py](framework/flow.py) | Single pipeline: ingest → CRC → ZeroGuard → InfraAgent → gate → audit |
+| [framework/flow.py](framework/flow.py) | Pipeline; delegates to MAWS hive when present |
+| [framework/locate_maws.py](framework/locate_maws.py) | Find sibling / `MAWS_ROOT` / `vendor/maws` |
 | [framework/cli.py](framework/cli.py) | Shadow / `--enforce` / `record-outcome` / `scorecard` |
 | [framework/webdemo.py](framework/webdemo.py) | SSE demo on :8877 |
 | [framework/ingest/](framework/ingest/) | Checkov + telemetry mappers |
@@ -258,6 +262,7 @@ Covers fail/pass/cross-plane stories, shadow vs `--enforce`, Holt capacity, Data
 | `FRAMEWORK_BUS_PATH` | Persist the bus at this path |
 | `REDIS_URL` or `FRAMEWORK_REDIS_URL` | Redis Streams if the `redis` package is installed; else file |
 | `UNIFIED_FRAMEWORK` | Plane repos: path to this checkout instead of `vendor/` |
+| `MAWS_ROOT` | Path to the MAWS hive repo instead of sibling `../maws` or `vendor/maws` |
 
 ---
 

@@ -15,6 +15,7 @@
       <a data-peer="cicd" href="../../CICD/demo/static/index.html">CICD</a>
       <a data-peer="infra" href="../../infra/demo/static/index.html">Infra</a>
       <a data-peer="zeroguard" href="../../zeroguard/demo/static/index.html">ZeroGuard</a>
+      <a data-peer="maws" href="../../maws/demo/static/index.html">MAWS</a>
       <a data-peer="unified" class="here" href="index.html">Unified</a>
     </nav>
   </header>
@@ -52,6 +53,21 @@
     </section>
 
     <div class="scenario-blurb" id="scenarioBlurb">Pick a story, or play them all. Customers stay on the old chatbot until we say go.</div>
+
+    <section class="hive" id="hive">
+      <div class="hive-label">MAWS hive — supervisor assigns, agents score, one pick</div>
+      <div class="hive-cells">
+        <div class="hive-cell" data-agent="Supervisor">Supervisor</div>
+        <div class="hive-cell" data-agent="IngestAgent">Ingest</div>
+        <div class="hive-cell" data-agent="CrcAgent">CRC</div>
+        <div class="hive-cell" data-agent="ZeroGuardAgent">ZeroGuard</div>
+        <div class="hive-cell" data-agent="InfraAgent">InfraAgent</div>
+        <div class="hive-cell" data-agent="DsaAgent">DSA</div>
+        <div class="hive-cell" data-agent="RpaAgent">RPA suggest</div>
+        <div class="hive-cell" data-agent="AuditAgent">Audit</div>
+      </div>
+      <div class="hive-task" id="hiveTask">Waiting for assignment…</div>
+    </section>
 
     <section class="flow-diagram" id="flowDiagram">
       <div class="flow-node" data-stage="ingest">
@@ -167,6 +183,7 @@
         cicd: { http: "http://127.0.0.1:8871/", file: "../../CICD/demo/static/index.html" },
         infra: { http: "http://127.0.0.1:8872/", file: "../../infra/demo/static/index.html" },
         zeroguard: { http: "http://127.0.0.1:8873/", file: "../../zeroguard/demo/static/index.html" },
+        maws: { http: "http://127.0.0.1:8874/", file: "../../maws/demo/static/index.html" },
         unified: { http: "http://127.0.0.1:8877/", file: "index.html" }
       }
     };

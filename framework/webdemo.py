@@ -216,6 +216,7 @@ def main(argv: list[str] | None = None) -> None:
     print("  CICD      http://127.0.0.1:8871/", flush=True)
     print("  Infra     http://127.0.0.1:8872/", flush=True)
     print("  ZeroGuard http://127.0.0.1:8873/", flush=True)
+    print("  MAWS      http://127.0.0.1:8874/", flush=True)
     print("  Unified   http://127.0.0.1:8877/", flush=True)
     if not args.no_browser:
         open_all_demo_pages()

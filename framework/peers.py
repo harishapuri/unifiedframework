@@ -14,6 +14,7 @@ PLANE_DEMOS = (
     ("CICD", "cicd.demo", 8871, "127.0.0.1"),
     ("infra", "infra.demo", 8872, "127.0.0.1"),
     ("zeroguard", "zeroguard.demo", 8873, "127.0.0.1"),
+    ("maws", "maws.demo", 8874, "127.0.0.1"),
     ("unified_framework", "framework.webdemo", 8877, "127.0.0.1"),
 )
 
@@ -23,6 +24,7 @@ SITES = {
     "cicd": "http://127.0.0.1:8871/",
     "infra": "http://127.0.0.1:8872/",
     "zeroguard": "http://127.0.0.1:8873/",
+    "maws": "http://127.0.0.1:8874/",
     "unified": "http://127.0.0.1:8877/",
 }
 

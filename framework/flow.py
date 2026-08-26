@@ -1,8 +1,7 @@
-"""Staged pipeline generator: ingest → CRC → ZeroGuard → InfraAgent → gate → audit.
+"""Staged pipeline: MAWS supervisor when present, else the local fusion loop.
 
-Same fusion logic as `Orchestrator.run`, but yields one event per stage so a
-caller (CLI, tests, or the SSE web demo) can watch — or automate — the
-workflow step by step instead of only seeing the final decision.
+Callers (CLI, tests, SSE demos) always use `iter_flow`. The MAWS hive is the
+orchestrator; scoring still lives in framework/crc, zeroguard, infraagent.
 """
 
 from __future__ import annotations
@@ -18,6 +17,7 @@ from framework.infraagent.forecast import score as infra_score
 from framework.infraagent.rpa import suggest as rpa_suggest
 from framework.ingest.checkov import load_checkov
 from framework.ingest.telemetry import load_telemetry
+from framework.locate_maws import iter_maws_or_none
 from framework.zeroguard.pillars import score as zg_score
 
 STAGES = ("ingest", "crc", "zeroguard", "infraagent", "gate", "audit", "done")
@@ -33,12 +33,47 @@ def iter_flow(
     service: str = "unknown",
     bus: MessageBus | None = None,
 ) -> Iterator[dict[str, Any]]:
-    """Yield `{"stage", "wait", "detail"}` events for one orchestrator run."""
+    maws = iter_maws_or_none(
+        checkov_path,
+        telemetry_path,
+        audit,
+        autonomy=autonomy,
+        shadow=shadow,
+        service=service,
+        bus=bus,
+    )
+    if maws is not None:
+        yield from maws
+        return
+    yield from _iter_flow_local(
+        checkov_path,
+        telemetry_path,
+        audit,
+        autonomy=autonomy,
+        shadow=shadow,
+        service=service,
+        bus=bus,
+    )
+
+
+def _iter_flow_local(
+    checkov_path: Path | str,
+    telemetry_path: Path | str | None,
+    audit: AuditChain,
+    *,
+    autonomy: int,
+    shadow: bool,
+    service: str,
+    bus: MessageBus | None,
+) -> Iterator[dict[str, Any]]:
+    """Fallback if the MAWS package is not on disk (CI without vendor/maws)."""
     bus = bus or MessageBus.from_env()
 
     yield {
         "stage": "ingest",
         "wait": 0.5,
+        "agent": "IngestAgent",
+        "task": "load_scan_and_traffic",
         "detail": {
             "checkov_source": str(checkov_path),
             "telemetry_source": str(telemetry_path) if telemetry_path else "defaults",
@@ -50,6 +85,8 @@ def iter_flow(
     yield {
         "stage": "ingested",
         "wait": 0.5,
+        "agent": "IngestAgent",
+        "task": "loaded",
         "detail": {
             "n_passed": checkov["n_passed"],
             "n_failed": checkov["n_failed"],
@@ -58,16 +95,16 @@ def iter_flow(
     }
 
     crc = crc_score(checkov)
-    bus.publish("RiskReport", crc, priority="safety", source="crc", service=service)
-    yield {"stage": "crc", "wait": 0.9, "detail": crc}
+    bus.publish("RiskReport", crc, priority="safety", source="CrcAgent", service=service)
+    yield {"stage": "crc", "wait": 0.9, "agent": "CrcAgent", "task": "score_rules", "detail": crc}
 
     zeroguard = zg_score(checkov, telemetry, eta=crc["eta"], phi_bar=crc["phi_bar_debt"])
-    bus.publish("ZtaScore", zeroguard, priority="identity", source="zeroguard", service=service)
-    yield {"stage": "zeroguard", "wait": 0.9, "detail": zeroguard}
+    bus.publish("ZtaScore", zeroguard, priority="identity", source="ZeroGuardAgent", service=service)
+    yield {"stage": "zeroguard", "wait": 0.9, "agent": "ZeroGuardAgent", "task": "score_trust", "detail": zeroguard}
 
     infraagent = infra_score(telemetry, eta=crc["eta"])
-    bus.publish("Forecast", infraagent, priority="capacity", source="infraagent", service=service)
-    yield {"stage": "infraagent", "wait": 0.9, "detail": infraagent}
+    bus.publish("Forecast", infraagent, priority="capacity", source="InfraAgent", service=service)
+    yield {"stage": "infraagent", "wait": 0.9, "agent": "InfraAgent", "task": "score_stay_up", "detail": infraagent}
 
     fused = {
         **crc,
@@ -77,9 +114,9 @@ def iter_flow(
     }
     decision = decide(fused, autonomy=autonomy)
     remediation = rpa_suggest(decision, infraagent)
-    bus.publish("GateDecision", decision, priority="safety", source="dsa", service=service)
-    bus.publish("PatchSet", remediation, priority="advisory", source="rpa", service=service)
-    yield {"stage": "gate", "wait": 1.0, "detail": {**decision, "remediation": remediation}}
+    bus.publish("GateDecision", decision, priority="safety", source="DsaAgent", service=service)
+    bus.publish("PatchSet", remediation, priority="advisory", source="RpaAgent", service=service)
+    yield {"stage": "gate", "wait": 1.0, "agent": "DsaAgent", "task": "decide", "detail": {**decision, "remediation": remediation}}
 
     outcome = "shadow" if shadow else ("enforced" if decision["would_enforce"] else "advisory")
     entry = audit.append(
@@ -106,7 +143,7 @@ def iter_flow(
         "Outcome",
         {"action": decision["action"], "outcome": outcome, "hash": entry["hash"]},
         priority="advisory",
-        source="audit",
+        source="AuditAgent",
         service=service,
     )
     bus.drain()
@@ -118,7 +155,7 @@ def iter_flow(
         "chain_ok": audit.verify(),
         "repaired": bool(getattr(audit, "repaired", False)),
     }
-    yield {"stage": "audit", "wait": 0.6, "detail": audit_detail}
+    yield {"stage": "audit", "wait": 0.6, "agent": "AuditAgent", "task": "seal", "detail": audit_detail}
 
     top_fails = [
         {
@@ -133,6 +170,8 @@ def iter_flow(
     yield {
         "stage": "done",
         "wait": 0.0,
+        "agent": "Supervisor",
+        "task": "complete",
         "detail": {
             "service": service,
             "crc": {**crc, "source": checkov["source"], "top_failed": top_fails},

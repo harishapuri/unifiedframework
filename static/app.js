@@ -72,6 +72,22 @@ function resetFlowDiagram() {
   setText("flowInfraagent", "Will it stay healthy?");
   setText("flowGate", "Go / wait / stop");
   setText("flowAudit", "Written down and sealed");
+  setActiveHive(null);
+  setText("hiveTask", "Waiting for assignment…");
+}
+
+function setActiveHive(agent) {
+  document.querySelectorAll(".hive-cell").forEach((el) => {
+    const name = el.getAttribute("data-agent");
+    el.classList.toggle("active", Boolean(agent) && name === agent);
+    if (agent && name === agent) el.classList.add("seen");
+  });
+}
+
+function noteHive(ev, fallback) {
+  if (ev.agent) setActiveHive(ev.agent);
+  const task = ev.task || fallback;
+  if (task) setText("hiveTask", (ev.agent ? ev.agent + " · " : "") + String(task).split("_").join(" "));
 }
 
 function logEvent(ev, message) {
@@ -222,33 +238,39 @@ function handleEvent(ev) {
       break;
     case "ingest":
       setActiveNode("ingest");
+      noteHive(ev, "load scan");
       setText("flowIngest", "reading the scan…");
       logEvent(ev, "Reading the security scan and live traffic");
       break;
     case "ingested":
+      noteHive(ev, "loaded");
       setText("flowIngest", `${ev.detail.n_passed} passed / ${ev.detail.n_failed} failed`);
       logEvent(ev, `Scan done: ${ev.detail.n_passed} passed, ${ev.detail.n_failed} failed`);
       break;
     case "crc":
       setActiveNode("crc");
+      noteHive(ev, "score rules");
       setText("flowCrc", ev.detail.residual_high ? "leftover risk — high" : "rules look fine");
       updateCrcPanel(ev.detail);
       logEvent(ev, `Code checks: ${Math.round(ev.detail.eta * 100)}% of rules passed`);
       break;
     case "zeroguard":
       setActiveNode("zeroguard");
+      noteHive(ev, "score trust");
       setText("flowZeroguard", `trust ${Math.round(ev.detail.psi * 100)}%`);
       updateZgPanel(ev.detail);
       logEvent(ev, `Trust checks: ${Math.round(ev.detail.psi * 100)}% · extra access ${Math.round(ev.detail.gamma * 100)}%`);
       break;
     case "infraagent":
       setActiveNode("infraagent");
+      noteHive(ev, "score stay-up");
       setText("flowInfraagent", `trouble in 1h ${Math.round(ev.detail.phi_1h * 100)}%`);
       updateIaPanel(ev.detail);
       logEvent(ev, `Stay-up checks: ${Math.round(ev.detail.omega * 100)}% healthy · 1-hour trouble ${Math.round(ev.detail.phi_1h * 100)}%`);
       break;
     case "gate": {
       setActiveNode("gate");
+      noteHive(ev, "decide");
       const word = ev.detail.dsa === "BLOCK" ? "Stop" : ev.detail.dsa === "WARN" ? "Wait" : "Go";
       setText("flowGate", word);
       const gateNode = document.querySelector('.flow-node[data-stage="gate"]');
@@ -257,8 +279,15 @@ function handleEvent(ev) {
       logEvent(ev, `Decision: <b>${word}</b> — ${ev.detail.reasons.join("; ")}`);
       break;
     }
+    case "compensate":
+      noteHive(ev, ev.detail && ev.detail.policy);
+      logEvent(ev, ev.detail && ev.detail.blue_stays_live
+        ? "MAWS compensation: stay on blue. Do not apply patches."
+        : "MAWS: go is allowed. Human still applies the switch.");
+      break;
     case "audit":
       setActiveNode("audit");
+      noteHive(ev, "seal");
       setText("flowAudit", ev.detail.chain_ok ? "signed and intact" : "log is broken");
       updateAuditPanel(ev.detail);
       logEvent(ev, `Signed log #${ev.detail.index} — ${ev.detail.chain_ok ? "intact" : "broken"}`);
