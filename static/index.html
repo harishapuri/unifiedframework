@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>How we decide — Northstar Bank</title>
-<link rel="stylesheet" href="/assets/styles.css?v=plain1" />
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="topbar">
@@ -12,11 +12,16 @@
     <div class="title">How a bank ships a customer chatbot</div>
     <div class="subtitle">We read the scan, check trust, guess if it will stay up, then pick one answer: go, wait, or stop.</div>
     <nav class="site-nav">
-      <a href="http://127.0.0.1:8800/">Home</a>
-      <a href="http://127.0.0.1:8765/">Watch the release</a>
-      <a class="here" href="/">How we decide</a>
+      <a data-peer="cicd" href="../../CICD/demo/static/index.html">CICD</a>
+      <a data-peer="infra" href="../../infra/demo/static/index.html">Infra</a>
+      <a data-peer="zeroguard" href="../../zeroguard/demo/static/index.html">ZeroGuard</a>
+      <a data-peer="unified" class="here" href="index.html">Unified</a>
     </nav>
   </header>
+  <section id="offlineBanner" class="gate-banner warn hidden">
+    <div class="gate-action">Start the demo server</div>
+    <div class="gate-reasons">This HTML file needs the Python gate for live stories. Run <code id="offlineCmd">cd ~/Desktop/unified_framework && python3 -m framework.webdemo</code> then refresh.</div>
+  </section>
 
   <section class="how">
     <div><b>Blue</b>The chatbot customers are talking to right now.</div>
@@ -154,7 +159,18 @@
   </main>
 
   <footer class="footer">Customers move only after the code, trust, and stay-up checks all agree</footer>
-
-  <script src="/assets/app.js?v=plain1"></script>
+  <script>
+    window.DEMO = {
+      origin: "http://127.0.0.1:8877",
+      cmd: "cd ~/Desktop/unified_framework && python3 -m framework.webdemo",
+      peers: {
+        cicd: { http: "http://127.0.0.1:8871/", file: "../../CICD/demo/static/index.html" },
+        infra: { http: "http://127.0.0.1:8872/", file: "../../infra/demo/static/index.html" },
+        zeroguard: { http: "http://127.0.0.1:8873/", file: "../../zeroguard/demo/static/index.html" },
+        unified: { http: "http://127.0.0.1:8877/", file: "index.html" }
+      }
+    };
+  </script>
+  <script src="app.js"></script>
 </body>
 </html>

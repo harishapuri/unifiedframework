@@ -4,11 +4,12 @@ No new dependencies — `http.server` only. Run with:
 
     python3 -m framework.webdemo
 
-Then open http://127.0.0.1:8877
+Then open http://127.0.0.4:8877/
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import time
 import webbrowser
@@ -18,8 +19,10 @@ from urllib.parse import parse_qs, urlparse
 
 from framework.audit import AuditChain
 from framework.bus import MessageBus
+from framework.demo_http import apply_cors, resolve_static, send_options
 from framework.flow import iter_flow
 from framework.orchestrator import Orchestrator
+from framework.peers import open_all_demo_pages, start_peer_demos
 
 ROOT = Path(__file__).resolve().parent.parent
 STATIC = ROOT / "static"
@@ -93,6 +96,7 @@ class DemoHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
+        apply_cors(self)
         self.end_headers()
         self.wfile.write(body)
 
@@ -105,6 +109,7 @@ class DemoHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", MIME.get(path.suffix, "application/octet-stream"))
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store, max-age=0")
+        apply_cors(self)
         self.end_headers()
         self.wfile.write(body)
 
@@ -118,6 +123,7 @@ class DemoHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", "text/event-stream")
         self.send_header("Cache-Control", "no-cache")
         self.send_header("Connection", "close")
+        apply_cors(self)
         self.end_headers()
         audit = AuditChain(DEMO_AUDIT)
         bus = MessageBus(path=DEMO_BUS)
@@ -148,13 +154,14 @@ class DemoHandler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             pass
 
+    def do_OPTIONS(self) -> None:  # noqa: N802
+        send_options(self)
+
     def do_GET(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
-        if parsed.path == "/":
-            self._send_file(STATIC / "index.html")
-            return
-        if parsed.path.startswith("/assets/"):
-            self._send_file(STATIC / parsed.path[len("/assets/") :])
+        static = resolve_static(STATIC, parsed.path)
+        if static is not None:
+            self._send_file(static)
             return
         if parsed.path == "/api/stories":
             self._send_json(
@@ -192,16 +199,26 @@ class DemoHandler(BaseHTTPRequestHandler):
         pass
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description="Unified framework demo")
+    parser.add_argument("--no-browser", action="store_true")
+    parser.add_argument("--no-peers", action="store_true")
+    args = parser.parse_args(argv)
     DEMO_AUDIT.parent.mkdir(parents=True, exist_ok=True)
+    if not args.no_peers:
+        started = start_peer_demos(desktop=ROOT.parent, self_port=8877)
+        if started:
+            print("also started " + ", ".join(started), flush=True)
     server = ThreadingHTTPServer(("127.0.0.1", 8877), DemoHandler)
-    host, port = server.server_address[:2]
-    url = f"http://{host}:{port}/"
-    print(f"Unified framework demo running at {url}  (Ctrl+C to stop)")
-    try:
-        webbrowser.open(url)
-    except Exception:
-        pass
+    url = "http://127.0.0.1:8877/"
+    print(f"Unified framework demo running at {url}  (Ctrl+C to stop)", flush=True)
+    print("Sites (one project each):", flush=True)
+    print("  CICD      http://127.0.0.1:8871/", flush=True)
+    print("  Infra     http://127.0.0.1:8872/", flush=True)
+    print("  ZeroGuard http://127.0.0.1:8873/", flush=True)
+    print("  Unified   http://127.0.0.1:8877/", flush=True)
+    if not args.no_browser:
+        open_all_demo_pages()
     try:
         server.serve_forever()
     except KeyboardInterrupt:

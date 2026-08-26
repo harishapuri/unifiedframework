@@ -73,7 +73,7 @@ Start both from this folder (Python 3.9+, no extra packages):
 
 ```bash
 cd unified_framework
-python3 -m framework.webdemo    # http://127.0.0.1:8877
+python3 -m framework.webdemo    # http://127.0.0.1:8877/
 python3 -m hub                  # http://127.0.0.1:8800
 ```
 
