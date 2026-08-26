@@ -1,8 +1,26 @@
 # Unified CRC + ZeroGuard + InfraAgent gate
 
+GitHub: [harishapuri/unifiedframework](https://github.com/harishapuri/unifiedframework)
+
 One closed-loop CI/CD decision system. A Checkov scan and a telemetry window go in. **One pick** comes out: go, wait, or stop — plus fused scores and a SHA-256 audit row.
 
-This folder is the **Checkov-fed gate** (stdlib Python). A separate bank-chatbot page can illustrate the same mechanism as a **story**. The story is not a measured evaluation. Do not file story-page numbers as results.
+This repo is the **shared library and fused demo**. Plane products clone or vendor it; they do not reimplement the bus.
+
+```bash
+git clone https://github.com/harishapuri/unifiedframework.git
+cd unifiedframework
+```
+
+## Plane repos (each is its own GitHub project)
+
+| GitHub | Paper / plane | Local demo |
+| --- | --- | --- |
+| [infraagent](https://github.com/harishapuri/infraagent) | CRC (207) — rules / CI-CD | http://127.0.0.1:8871/ · `python3 -m cicd.demo` |
+| [CICD_Compliance](https://github.com/harishapuri/CICD_Compliance) | InfraAgent (1239) — stay-up | http://127.0.0.1:8872/ · `python3 -m infra.demo` |
+| [ZeroGuard](https://github.com/harishapuri/ZeroGuard) | ZeroGuard (2143) — trust | http://127.0.0.1:8873/ · `python3 -m zeroguard.demo` |
+| **This repo** | Fused gate (all three) | http://127.0.0.1:8877/ · `python3 -m framework.webdemo` |
+
+Each plane repo vendors a snapshot of this library under `vendor/unified_framework`. Set `UNIFIED_FRAMEWORK` to this checkout to override vendor.
 
 The three source papers are cooperating planes, not three products:
 
@@ -13,6 +31,8 @@ The three source papers are cooperating planes, not three products:
 | InfraAgent (1239) | Stay-up | Will it fail soon, or will we run out of room? |
 
 Join rule: CRC policy adherence **η** multiplies both ZeroGuard posture **Ψ** and InfraAgent posture **Ω**. Then one DSA gate speaks. A security suggestion beats a rollout suggestion. Suggested patches are never auto-applied.
+
+This folder is the **Checkov-fed gate** (stdlib Python). A separate bank-chatbot page can illustrate the same mechanism as a **story**. The story is not a measured evaluation. Do not file story-page numbers as results.
 
 ---
 
@@ -62,20 +82,21 @@ Full figures: [ARCHITECTURE.md](ARCHITECTURE.md). Industry comparison: [INDUSTRY
 
 ---
 
-## Three sites
+## Sites in this repo
 
 | Port | Command | What it is |
 | --- | --- | --- |
 | **8800** | `python3 -m hub` | Home + completed-flow GIF. Links to the gate demo. |
 | **8877** | `python3 -m framework.webdemo` | **Proof.** Real pipeline, staged. Checkov fixtures. Go / wait / stop. |
 
-Start both from this folder (Python 3.9+, no extra packages):
+Start from this folder (Python 3.9+, no extra packages):
 
 ```bash
-cd unified_framework
 python3 -m framework.webdemo    # http://127.0.0.1:8877/
 python3 -m hub                  # http://127.0.0.1:8800
 ```
+
+If the three plane repos sit next to this checkout on the Desktop, `framework.webdemo` can start their demos on 8871–8873. Each plane page is solo; this page still shows all three planes.
 
 ---
 
@@ -84,8 +105,6 @@ python3 -m hub                  # http://127.0.0.1:8800
 Stdlib only. Default is **shadow** (exit 0 even on BLOCK). `--enforce` exits `2` on BLOCK.
 
 ```bash
-cd unified_framework
-
 # Fail: open SG + public bucket + wildcard IAM + hot traffic
 python3 -m framework.cli examples/checkov_fail.json \
   --telemetry examples/telemetry_hot.json \
@@ -203,7 +222,6 @@ Same join. Different sensors. The petition proof is **this** repo on real Checko
 ## Tests
 
 ```bash
-cd unified_framework
 python3 -m unittest tests.test_gate tests.test_flow tests.test_improvements tests.test_audit -v
 ```
 
@@ -239,6 +257,7 @@ Covers fail/pass/cross-plane stories, shadow vs `--enforce`, Holt capacity, Data
 | --- | --- |
 | `FRAMEWORK_BUS_PATH` | Persist the bus at this path |
 | `REDIS_URL` or `FRAMEWORK_REDIS_URL` | Redis Streams if the `redis` package is installed; else file |
+| `UNIFIED_FRAMEWORK` | Plane repos: path to this checkout instead of `vendor/` |
 
 ---
 
