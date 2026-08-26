@@ -20,7 +20,7 @@ cd unifiedframework
 | [ZeroGuard](https://github.com/harishapuri/ZeroGuard) | ZeroGuard (2143) — trust | http://127.0.0.1:8873/ · `python3 -m zeroguard.demo` |
 | **This repo** | Fused gate (all three) | http://127.0.0.1:8877/ · `python3 -m framework.webdemo` |
 
-Each plane repo vendors a snapshot of this library under `vendor/unified_framework`. Set `UNIFIED_FRAMEWORK` to this checkout to override vendor.
+Each plane repo vendors a snapshot of this library under `vendor/unified_framework`. Set `UNIFIED_FRAMEWORK` to this checkout to override vendor. Each plane GitHub repo has its own `ARCHITECTURE.md`, `INDUSTRY_VS_OURS.md`, and `PLAN.md` written for that plane. This repo’s copies: [ARCHITECTURE.md](ARCHITECTURE.md), [INDUSTRY_VS_OURS.md](INDUSTRY_VS_OURS.md), [PLAN.md](PLAN.md).
 
 The three source papers are cooperating planes, not three products:
 
