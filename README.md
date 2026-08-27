@@ -15,11 +15,13 @@ cd unifiedframework
 
 | GitHub | Paper / plane | Local demo |
 | --- | --- | --- |
-| [CICD_Compliance](https://github.com/harishapuri/CICD_Compliance) | CRC (207) — rules / CI-CD | http://127.0.0.1:8871/ · `python3 -m cicd.demo` |
-| [infraagent](https://github.com/harishapuri/infraagent) | InfraAgent (1239) — stay-up | http://127.0.0.1:8872/ · `python3 -m infra.demo` |
+| [infraagent](https://github.com/harishapuri/infraagent) | CRC (207) — rules / CI-CD | http://127.0.0.1:8871/ · `python3 -m cicd.demo` |
+| [CICD_Compliance](https://github.com/harishapuri/CICD_Compliance) | InfraAgent (1239) — stay-up | http://127.0.0.1:8872/ · `python3 -m infra.demo` |
 | [ZeroGuard](https://github.com/harishapuri/ZeroGuard) | ZeroGuard (2143) — trust | http://127.0.0.1:8873/ · `python3 -m zeroguard.demo` |
 | [MAWS](https://github.com/harishapuri/MAWS) | MAWS hive orchestrator | http://127.0.0.1:8874/ · `python3 -m maws.demo` |
 | **This repo** | Fused gate (all three) | http://127.0.0.1:8877/ · `python3 -m framework.webdemo` |
+
+GitHub names match these remotes: **CRC is in [infraagent](https://github.com/harishapuri/infraagent)**; **stay-up is in [CICD_Compliance](https://github.com/harishapuri/CICD_Compliance)**. Local folders on disk may still be `CICD` and `infra`.
 
 Each plane repo vendors a snapshot of this library under `vendor/unified_framework`. Set `UNIFIED_FRAMEWORK` to this checkout to override vendor. Each plane GitHub repo has its own `ARCHITECTURE.md`, `INDUSTRY_VS_OURS.md`, and `PLAN.md` written for that plane. This repo’s copies: [ARCHITECTURE.md](ARCHITECTURE.md), [INDUSTRY_VS_OURS.md](INDUSTRY_VS_OURS.md), [PLAN.md](PLAN.md).
 

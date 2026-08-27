@@ -18,8 +18,8 @@ python3 -m maws.automate      # seven stories, exit 1 if a pick drifts
 | Repo | Role |
 | --- | --- |
 | [unifiedframework](https://github.com/harishapuri/unifiedframework) | Fused scores, bus, audit (source of `vendor/unified_framework`) |
-| [CICD_Compliance](https://github.com/harishapuri/CICD_Compliance) | CRC / CI-CD |
-| [infraagent](https://github.com/harishapuri/infraagent) | Stay-up |
+| [infraagent](https://github.com/harishapuri/infraagent) | CRC / CI-CD |
+| [CICD_Compliance](https://github.com/harishapuri/CICD_Compliance) | Stay-up |
 | [ZeroGuard](https://github.com/harishapuri/ZeroGuard) | Trust |
 
 `iter_flow` in unified_framework delegates to this package when `MAWS_ROOT`, sibling `../maws`, or `vendor/maws` is present.
