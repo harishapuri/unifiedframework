@@ -1,8 +1,7 @@
 """Looping GIF: outer completed flow, then the internal agent workflow.
 
-Outer: Ingest → CRC → ZeroGuard → InfraAgent → DSA → Audit
-Inner: CRC sensors, ZeroGuard ICA/ZTPA/IAEA/GRA, InfraAgent T-GAN/CFA/RPA,
-       shared bus → orchestrator → DQN → audit.
+Outer: Ingest → CRC → ZeroGuard → InfraAgent → DSA → Audit → Corp intent
+Inner: scanners, planes, hive, corporate adapters (apply false).
 """
 
 from __future__ import annotations
@@ -26,19 +25,20 @@ FONT = "/System/Library/Fonts/Supplemental/Arial.ttf"
 FONTB = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
 
 STAGES = [
-    ("Ingest", "Checkov + telemetry", "read the scan"),
+    ("Ingest", "Checkov · SARIF · git", "fold scanners"),
     ("CRC", "η  ·  residual", "policy adherence"),
     ("ZeroGuard", "Ψ  ·  Ξ  ·  Γ", "zero-trust IaC"),
     ("InfraAgent", "Ω  ·  φ  ·  κ", "predictive ops"),
     ("DSA gate", "ALLOW / BLOCK", "one decision"),
     ("Audit", "SHA-256 chain", "append-only log"),
+    ("Corp", "intent · evidence", "apply stays false"),
 ]
 
 LANES = [
-    ("CRC sensors", [("Code GB", "snippet risk"), ("Container", "image ensemble"), ("IsoForest", "chat telemetry"), ("η residual", "policy score")]),
+    ("Ingest shipped", [("Checkov", "control JSON"), ("Git scan", "clone + tree"), ("SARIF", "SAST fold"), ("Trivy", "image / IaC")]),
     ("ZeroGuard", [("ICA", "resource graph"), ("ZTPA", "7 pillars"), ("IAEA", "IAM excess Γ"), ("GRA", "patch + Rego")]),
-    ("InfraAgent", [("T-GAN", "φ 1h/6h/24h"), ("CFA", "capacity κ"), ("RPA", "rollout"), ("DSA", "α2 gate")]),
-    ("Shared backbone", [("Bus", "priority queue"), ("MAWS hive", "named agents"), ("DSA α2", "ALLOW/BLOCK"), ("Audit", "SHA-256")]),
+    ("InfraAgent", [("T-GAN", "φ 1h/6h/24h"), ("CFA", "Holt κ"), ("RPA", "suggest only"), ("DSA", "α2 gate")]),
+    ("Hive + corp", [("MAWS", "named agents"), ("Audit", "SHA-256"), ("Intent", "hold/canary/go"), ("Evidence", "actor export")]),
 ]
 
 
@@ -99,16 +99,16 @@ def draw_outer(draw, lit: int, pulse: float, completed: bool) -> None:
         title, sub, _ = STAGES[i]
         cx, cy = node_xy(i)
         if completed or i < lit:
-            box(draw, cx, cy, 164, 78, title, sub, 1.0, True)
+            box(draw, cx, cy, 148, 78, title, sub, 1.0, True)
         elif i == lit:
-            box(draw, cx, cy, 164, 78, title, sub, pulse, False)
+            box(draw, cx, cy, 148, 78, title, sub, pulse, False)
         else:
-            box(draw, cx, cy, 164, 78, title, sub, 0.12, False)
+            box(draw, cx, cy, 148, 78, title, sub, 0.12, False)
         if i < len(STAGES) - 1:
             x1, y = node_xy(i)
             x2, _ = node_xy(i + 1)
             hot = completed or i < lit
-            arrow(draw, (x1 + 86, y), (x2 - 86, y), OK if hot else lerp(LINE, ACCENT, 0.3 if i == lit else 0.12), 3)
+            arrow(draw, (x1 + 78, y), (x2 - 78, y), OK if hot else lerp(LINE, ACCENT, 0.3 if i == lit else 0.12), 3)
 
 
 def lane_cell(lane: int, step: int) -> tuple[int, int]:
@@ -139,42 +139,41 @@ def draw_internal(draw, lit: int, pulse: float, completed: bool) -> None:
 def compose() -> list[Image.Image]:
     frames: list[Image.Image] = []
 
-    def add(im: Image.Image, n: int = 2) -> None:
+    def add(im: Image.Image, n: int = 1) -> None:
         for _ in range(n):
             frames.append(im.copy())
 
     for i, (_t, _s, hint) in enumerate(STAGES):
-        for pulse in (0.4, 0.8, 1.0):
+        for pulse in (0.55, 1.0):
             im = Image.new("RGB", (W, H), BG)
             d = ImageDraw.Draw(im)
-            chrome(d, "Outer flow  ·  Ingest → CRC → ZeroGuard → InfraAgent → DSA → Audit", f"{i + 1}/{len(STAGES)}  {STAGES[i][0]} — {hint}")
+            chrome(d, "Outer flow  ·  Ingest → CRC → ZeroGuard → InfraAgent → DSA → Audit → Corp", f"{i + 1}/{len(STAGES)}  {STAGES[i][0]} — {hint}")
             draw_outer(d, i, pulse, False)
-            add(im, 2)
+            add(im, 1)
 
     hold = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(hold)
     chrome(d, "Outer flow complete — now the internal agent workflow", "One fused gate, then the planes inside each box", "customers stay on blue until ALLOW")
     draw_outer(d, len(STAGES), 1.0, True)
-    add(hold, 8)
+    add(hold, 4)
 
     total_inner = sum(len(steps) for _n, steps in LANES)
     for idx in range(total_inner):
         lane, step = divmod(idx, 4)
         title, sub = LANES[lane][1][step]
-        for pulse in (0.45, 1.0):
-            im = Image.new("RGB", (W, H), BG)
-            d = ImageDraw.Draw(im)
-            chrome(d, "Internal workflow  ·  sensors, ZeroGuard, InfraAgent, shared backbone", f"{LANES[lane][0]}  ·  {title} — {sub}")
-            draw_outer(d, len(STAGES), 1.0, True)
-            draw_internal(d, idx, pulse, False)
-            add(im, 2)
+        im = Image.new("RGB", (W, H), BG)
+        d = ImageDraw.Draw(im)
+        chrome(d, "Internal workflow  ·  scanners, planes, hive, corporate adapters", f"{LANES[lane][0]}  ·  {title} — {sub}")
+        draw_outer(d, len(STAGES), 1.0, True)
+        draw_internal(d, idx, 1.0, False)
+        add(im, 1)
 
     done = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(done)
-    chrome(d, "Completed  ·  outer flow + internal workflow", "Bus merges CRC + ZeroGuard + InfraAgent → DSA → audit chain", "ALLOW  ·  customers may move to green")
+    chrome(d, "Completed  ·  outer flow + internal workflow", "Bus merges CRC + ZeroGuard + InfraAgent → DSA → audit → intent", "apply false  ·  mesh not flipped here")
     draw_outer(d, len(STAGES), 1.0, True)
     draw_internal(d, total_inner, 1.0, True)
-    add(done, 18)
+    add(done, 8)
     return frames
 
 
@@ -185,9 +184,9 @@ def main() -> None:
         OUT,
         save_all=True,
         append_images=frames[1:],
-        duration=100,
+        duration=140,
         loop=0,
-        optimize=False,
+        optimize=True,
         disposal=2,
     )
     print(f"Wrote {OUT} ({len(frames)} frames, {OUT.stat().st_size / 1024:.0f} KB)")

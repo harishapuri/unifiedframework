@@ -135,6 +135,23 @@ python3 -m framework.cli examples/checkov_pass.json \
 
 JSON shape: `{ crc, zeroguard, infraagent, governance }`.
 
+### Corporate wiring (still shadow, still `apply: false`)
+
+Fold extra scanners, stamp who ran the gate, write a blue/green *intent* for the mesh, and copy the sealed row off disk. This does not flip traffic and does not enable `--enforce`.
+
+```bash
+export GATE_ACTOR=ci
+python3 -m framework.cli examples/checkov_pass.json \
+  --telemetry examples/telemetry_ok.json \
+  --merge-sarif examples/sarif_sample.json \
+  --merge-trivy examples/trivy_sample.json \
+  --export-evidence /tmp/gate-evidence \
+  --traffic-intent /tmp/gate-traffic \
+  --actor ci
+```
+
+`TRAFFIC_WEBHOOK` / `EVIDENCE_WEBHOOK` POST the same JSON (`apply` stays false). `GATE_TOKEN` is sent as Bearer and is never written into the audit packet.
+
 Audit rows append to `data/audit.jsonl` (hash-linked). Bus events sit beside it as `data/audit.jsonl.bus`. Both are gitignored.
 
 ### After a real release — score the pick
@@ -228,7 +245,7 @@ Same join. Different sensors. The petition proof is **this** repo on real Checko
 ## Tests
 
 ```bash
-python3 -m unittest tests.test_gate tests.test_flow tests.test_improvements tests.test_audit tests.test_maws -v
+python3 -m unittest tests.test_gate tests.test_flow tests.test_improvements tests.test_audit tests.test_maws tests.test_corp -v
 ```
 
 Covers fail/pass/cross-plane stories, shadow vs `--enforce`, Holt capacity, Datadog mapping, durable bus, two-writer audit (no fork), and repair of a broken chain.

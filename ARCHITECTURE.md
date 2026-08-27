@@ -7,11 +7,12 @@ Three scoring papers plus a **MAWS hive**. CRC, ZeroGuard, and InfraAgent still 
 ```mermaid
 flowchart TB
   subgraph UPSTREAM
-    SRC[Commit]
-    IMG[Image]
-    IAC[IaC]
-    TEL[Runtime]
-    DEM[Demand]
+    GIT[Git repo clone]
+    CKV[Checkov JSON]
+    SARIF[SARIF SAST]
+    TRIVY[Trivy JSON]
+    TEL[Datadog / Prometheus]
+    DEM[Demand history]
   end
 
   subgraph hive [MAWS hive]
@@ -32,9 +33,10 @@ flowchart TB
     SUP -->|assign| AUD
   end
 
-  SRC --> IN
-  IMG --> IN
-  IAC --> IN
+  GIT --> IN
+  CKV --> IN
+  SARIF --> IN
+  TRIVY --> IN
   TEL --> IN
   DEM --> IN
 
@@ -80,14 +82,19 @@ flowchart TB
   HOLD --> RPA
   GREEN --> RPA
   RPA --> AUD
-  AUD --> SC[Scorecard then enforce]
+  AUD --> CORP[Corp adapters]
+  CORP --> ACT[GATE_ACTOR stamp]
+  CORP --> EV[Evidence JSON / webhook]
+  CORP --> INT[Traffic intent hold / canary / promote]
+  INT -->|apply false| MESH[Platform mesh — not flipped here]
+  EV --> SC[Scorecard then enforce]
+  AUD --> SC
 ```
 
-CRC still runs **before** ZeroGuard and InfraAgent because η multiplies Ψ and Ω. RPA `apply = false`.
+CRC still runs **before** ZeroGuard and InfraAgent because η multiplies Ψ and Ω. RPA `apply = false`. Traffic intent is suggest-only; the mesh is not flipped in this repo.
 
 ```
-Artifacts          Checkov / tfsec JSON          Datadog / Prometheus
-(code, image, IaC, telemetry, demand history)
+Git clone / Checkov JSON / SARIF / Trivy     Datadog / Prometheus / demand
                          │                              │
                          └──────────┬───────────────────┘
                                     ▼
@@ -97,6 +104,8 @@ Artifacts          Checkov / tfsec JSON          Datadog / Prometheus
                                     │
                          IngestAgent
                      framework/ingest/checkov.py
+                     framework/ingest/scanners.py   (SARIF + Trivy fold)
+                     framework/ingest/git_scan.py
                      framework/ingest/telemetry.py
                                     │
               ┌─────────────────────┼─────────────────────┐
@@ -125,11 +134,16 @@ Artifacts          Checkov / tfsec JSON          Datadog / Prometheus
               GRA wins security       Outcome sidecar
               Supervisor compensates  scorecard
               stay-on-blue on wait/stop
+              corp: actor, evidence export, traffic intent
                                     │
                                     ▼
-                         Traffic switch LAST
-              blue stays live unless the pick is go
-              Login → Chatbot → Fraud → Ledger → switch
+                         Traffic *intent* LAST  (apply = false)
+              hold | canary 10% | promote
+              --traffic-intent / TRAFFIC_WEBHOOK
+              blue stays live unless their CD honors go
+              --export-evidence / EVIDENCE_WEBHOOK
+              actor: GATE_ACTOR / GITHUB_ACTOR
+              Login → Chatbot → Fraud → Ledger → switch (their CD)
 ```
 
 ## System context
@@ -137,7 +151,10 @@ Artifacts          Checkov / tfsec JSON          Datadog / Prometheus
 ```mermaid
 flowchart LR
   subgraph sources [Sources]
-    CK[Checkov / tfsec JSON]
+    GIT[Git URL]
+    CK[Checkov JSON]
+    SARIF[SARIF]
+    TRIVY[Trivy]
     DD[Datadog / Prometheus]
     HIST[Demand history]
   end
@@ -158,23 +175,30 @@ flowchart LR
 
   subgraph evidence [Evidence]
     AUD[AuditAgent]
+    ACT[Actor stamp]
+    EXP[Evidence export]
     SC[Outcome scorecard]
     RPA[RpaAgent suggest only]
   end
 
-  subgraph effect [Effect]
-    BLU[Blue stays live]
-    GRN[Green empty until go]
+  subgraph effect [Intent apply false]
+    HOLD[hold green weight 0]
+    CAN[canary 10 percent]
+    PROM[promote]
   end
 
+  GIT --> IN
   CK --> IN
+  SARIF --> IN
+  TRIVY --> IN
   DD --> IN
   HIST --> IN
-  DSA --> AUD --> SC
+  DSA --> AUD --> ACT --> EXP --> SC
   DSA --> RPA
-  DSA -->|go| GRN
-  DSA -->|wait or stop| BLU
-  SUP -->|compensate| BLU
+  DSA -->|BLOCK| HOLD
+  DSA -->|WARN| CAN
+  DSA -->|ALLOW| PROM
+  SUP -->|compensate| HOLD
 ```
 
 ## One pipeline run
@@ -191,9 +215,11 @@ sequenceDiagram
   participant DSA as DsaAgent
   participant Rpa as RpaAgent
   participant Aud as AuditAgent
+  participant Corp as Corp adapters
 
-  CLI->>Sup: Checkov JSON + metrics
-  Sup->>In: load scan
+  CLI->>Sup: Checkov and/or git URL plus SARIF/Trivy plus metrics
+  Sup->>In: load and fold scanners
+  Note over In: git_scan / scanners.py / checkov.py
   In->>CRC: findings
   CRC->>Bus: RiskReport source CrcAgent
   In->>ZG: findings + telemetry
@@ -210,7 +236,9 @@ sequenceDiagram
   DSA->>Rpa: suggest only
   Rpa->>Bus: PatchSet apply false
   DSA->>Aud: action + traces + prev hash
-  Note over DSA: never auto-apply
+  Aud->>Corp: actor + evidence file + traffic intent
+  Corp-->>CLI: apply stays false
+  Note over DSA,Corp: never auto-apply; mesh not flipped here
 ```
 
 ## Three planes plus the hive
@@ -218,7 +246,7 @@ sequenceDiagram
 | Plane | Paper | Shipped | Question it answers |
 |---|---|---|---|
 | **MAWS** | Agentic workflows | Supervisor, named agents, bus as environment, stay-on-blue compensation. Repo: [MAWS](https://github.com/harishapuri/MAWS) | Who assigns the work, and does anyone auto-apply? No. |
-| **CRC** | 207 | Checkov → η, debt, residual-high | Did the scanner find trouble? |
+| **CRC** | 207 | Checkov, git clone scan, SARIF/Trivy fold → η, debt, residual-high | Did the scanner find trouble? |
 | **ZeroGuard** | 2143 | 7 NIST SP 800-207 pillars, Ξ, Γ, Ψ | Open doors or extra permissions? |
 | **InfraAgent** | 1239 | Heuristic φ, Holt κ, Ω, DSA, suggest-only RPA | Will it fail or run out of room? |
 

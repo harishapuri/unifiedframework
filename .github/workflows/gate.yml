@@ -1,0 +1,31 @@
+name: Unified shadow gate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Unit tests
+        run: python3 -m unittest tests.test_gate tests.test_flow tests.test_improvements tests.test_audit tests.test_maws tests.test_corp -v
+      - name: Shadow pass with corporate adapters
+        env:
+          GATE_ACTOR: ${{ github.actor }}
+        run: |
+          python3 -m framework.cli examples/checkov_pass.json \
+            --telemetry examples/telemetry_ok.json \
+            --merge-sarif examples/sarif_sample.json \
+            --merge-trivy examples/trivy_sample.json \
+            --export-evidence artifacts/evidence \
+            --traffic-intent artifacts/traffic \
+            --service ci
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gate-evidence
+          path: artifacts/

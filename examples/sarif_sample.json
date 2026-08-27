@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": { "driver": { "name": "example-sast" } },
+      "results": [
+        {
+          "ruleId": "SAST001",
+          "level": "error",
+          "message": { "text": "Hardcoded credential in chatbot config" },
+          "locations": [
+            {
+              "physicalLocation": { "artifactLocation": { "uri": "app/config.py" } },
+              "logicalLocations": [{ "name": "chatbot-config" }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "Results": [
+    {
+      "Target": "Dockerfile",
+      "Misconfigurations": [
+        {
+          "ID": "DS002",
+          "AVDID": "AVD-DS-0002",
+          "Title": "Image user is root",
+          "Severity": "HIGH",
+          "Status": "FAIL",
+          "CauseMetadata": { "Resource": "Dockerfile" }
+        }
+      ],
+      "Vulnerabilities": []
+    }
+  ]
+}
