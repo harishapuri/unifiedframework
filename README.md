@@ -15,8 +15,8 @@ cd unifiedframework
 
 | GitHub | Paper / plane | Local demo |
 | --- | --- | --- |
-| [infraagent](https://github.com/harishapuri/infraagent) | CRC (207) — rules / CI-CD | http://127.0.0.1:8871/ · `python3 -m cicd.demo` |
-| [CICD_Compliance](https://github.com/harishapuri/CICD_Compliance) | InfraAgent (1239) — stay-up | http://127.0.0.1:8872/ · `python3 -m infra.demo` |
+| [CICD_Compliance](https://github.com/harishapuri/CICD_Compliance) | CRC (207) — rules / CI-CD | http://127.0.0.1:8871/ · `python3 -m cicd.demo` |
+| [infraagent](https://github.com/harishapuri/infraagent) | InfraAgent (1239) — stay-up | http://127.0.0.1:8872/ · `python3 -m infra.demo` |
 | [ZeroGuard](https://github.com/harishapuri/ZeroGuard) | ZeroGuard (2143) — trust | http://127.0.0.1:8873/ · `python3 -m zeroguard.demo` |
 | [MAWS](https://github.com/harishapuri/MAWS) | MAWS hive orchestrator | http://127.0.0.1:8874/ · `python3 -m maws.demo` |
 | **This repo** | Fused gate (all three) | http://127.0.0.1:8877/ · `python3 -m framework.webdemo` |
