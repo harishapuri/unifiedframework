@@ -18,7 +18,14 @@ from maws.catalog import DEMO_AUDIT, HOST, PORT, ROOT, STATIC, STORIES, STORY_OR
 
 from framework.audit import AuditChain
 from framework.bus import MessageBus
-from framework.demo_http import apply_cors, resolve_static, send_options
+from framework.demo_http import (
+    apply_cors,
+    handle_automate,
+    handle_scan,
+    read_json_body,
+    resolve_static,
+    send_options,
+)
 from framework.flow import iter_flow
 from framework.orchestrator import Orchestrator
 from framework.peers import open_all_demo_pages, start_peer_demos
@@ -67,11 +74,26 @@ class DemoHandler(BaseHTTPRequestHandler):
         except (BrokenPipeError, ConnectionResetError):
             raise
 
+    def _automate(self, payload: dict) -> None:
+        from maws.automate import run_all
+
+        def fixtures() -> dict:
+            rows = run_all(STORY_ORDER)
+            return {"plane": "maws", "stories": rows, "passed": all(r["ok"] for r in rows)}
+
+        status, body = handle_automate(payload, run_fixtures=fixtures, audit=DEMO_AUDIT)
+        self._send_json(body, status=status)
+
+    def _scan(self, payload: dict) -> None:
+        status, body = handle_scan(payload, audit=DEMO_AUDIT)
+        self._send_json(body, status=status)
+
     def _stream_stories(self, story_keys: list[str]) -> None:
         self.send_response(200)
         self.send_header("Content-Type", "text/event-stream")
         self.send_header("Cache-Control", "no-cache")
-        self.send_header("Connection", "close")
+        self.send_header("Connection", "keep-alive")
+        self.send_header("X-Accel-Buffering", "no")
         apply_cors(self)
         self.end_headers()
         audit = AuditChain(DEMO_AUDIT)
@@ -98,7 +120,7 @@ class DemoHandler(BaseHTTPRequestHandler):
                 ):
                     ev["story"] = story
                     self._sse_write(ev)
-                time.sleep(float(ev.get("wait", 0.4)))
+                    time.sleep(float(ev.get("wait", 0.4)))
             self._sse_write({"stage": "stream_done", "wait": 0.0, "detail": {}})
         except (BrokenPipeError, ConnectionResetError):
             pass
@@ -139,16 +161,7 @@ class DemoHandler(BaseHTTPRequestHandler):
             self._send_json(result)
             return
         if parsed.path == "/api/automate":
-            from maws.automate import run_all
-
-            rows = run_all(STORY_ORDER)
-            self._send_json(
-                {
-                    "plane": "maws",
-                    "stories": rows,
-                    "passed": all(r["ok"] for r in rows),
-                }
-            )
+            self._automate({})
             return
         if parsed.path == "/api/stream":
             qs = parse_qs(parsed.query)
@@ -159,6 +172,16 @@ class DemoHandler(BaseHTTPRequestHandler):
                 self._stream_stories([story])
             else:
                 self._send_json({"error": f"unknown story '{story}'"}, status=400)
+            return
+        self.send_error(404, "not found")
+
+    def do_POST(self) -> None:  # noqa: N802
+        parsed = urlparse(self.path)
+        if parsed.path == "/api/scan":
+            self._scan(read_json_body(self))
+            return
+        if parsed.path == "/api/automate":
+            self._automate({})
             return
         self.send_error(404, "not found")
 

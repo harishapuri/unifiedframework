@@ -1,0 +1,6 @@
+{
+  "git_url": "REPLACE_WITH_GIT_REPO_URL",
+  "ref": "main",
+  "path": ".",
+  "telemetry": null
+}

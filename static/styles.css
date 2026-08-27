@@ -72,27 +72,6 @@ body {
   .how { grid-template-columns: 1fr 1fr; }
 }
 
-.artifact-row {
-  display: flex;
-  gap: 12px;
-  padding: 20px 32px;
-  flex-wrap: wrap;
-}
-
-.artifact {
-  background: var(--panel);
-  border: 1px solid var(--panel-border);
-  color: var(--text);
-  border-radius: 8px;
-  padding: 10px 18px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.15s, transform 0.15s;
-}
-
-.artifact:hover { border-color: var(--accent); }
-
 main { padding: 0 32px 32px; }
 
 .story-row {
@@ -132,6 +111,34 @@ main { padding: 0 32px 32px; }
 .story-btn.auto:hover { background: var(--ok); color: #06231a; }
 .story-btn.auto.running { background: var(--ok); color: #06231a; }
 
+.scan-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: -8px 0 18px;
+}
+.scan-row .story-btn.auto { margin-left: 0; }
+.scan-input {
+  flex: 1 1 18rem;
+  min-width: 12rem;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.scan-input.tiny {
+  flex: 0 0 4.5rem;
+  min-width: 3.5rem;
+  max-width: 6rem;
+}
+.scan-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 .scenario-blurb {
   font-size: 12px;
   color: var(--muted);
@@ -169,12 +176,16 @@ main { padding: 0 32px 32px; }
   padding: 6px 10px;
   border: 1px solid var(--panel-border);
   color: var(--muted);
+  background: #141824;
+  border-radius: 6px;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
-.hive-cell.seen { color: var(--text); border-color: #3a4158; }
+.hive-cell.seen { color: var(--text); border-color: #3a4158; background: #1c2233; }
 .hive-cell.active {
-  color: var(--text);
+  color: #fff;
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px rgba(91,127,255,0.35);
+  background: rgba(91, 127, 255, 0.22);
+  box-shadow: 0 0 0 1px rgba(91,127,255,0.45);
 }
 .hive-task {
   margin-top: 10px;

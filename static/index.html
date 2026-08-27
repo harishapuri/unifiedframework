@@ -12,11 +12,11 @@
     <div class="title">How a bank ships a customer chatbot</div>
     <div class="subtitle">We read the scan, check trust, guess if it will stay up, then pick one answer: go, wait, or stop.</div>
     <nav class="site-nav">
-      <a data-peer="cicd" href="../../CICD/demo/static/index.html">CICD</a>
-      <a data-peer="infra" href="../../infra/demo/static/index.html">Infra</a>
-      <a data-peer="zeroguard" href="../../zeroguard/demo/static/index.html">ZeroGuard</a>
-      <a data-peer="maws" href="../../maws/demo/static/index.html">MAWS</a>
-      <a data-peer="unified" class="here" href="index.html">Unified</a>
+      <a data-peer="cicd" href="http://127.0.0.1:8871/">CICD</a>
+      <a data-peer="infra" href="http://127.0.0.1:8872/">Infra</a>
+      <a data-peer="zeroguard" href="http://127.0.0.1:8873/">ZeroGuard</a>
+      <a data-peer="maws" href="http://127.0.0.1:8874/">MAWS</a>
+      <a data-peer="unified" class="here" href="http://127.0.0.1:8877/">Unified</a>
     </nav>
   </header>
   <section id="offlineBanner" class="gate-banner warn hidden">
@@ -31,14 +31,6 @@
     <div><b>Stop</b>Keep customers on the old chatbot.</div>
   </section>
 
-  <nav class="artifact-row" id="artifactRow">
-    <button class="artifact" data-target="crc">Chatbot code</button>
-    <button class="artifact" data-target="crc">Server box</button>
-    <button class="artifact" data-target="zeroguard">Network setup</button>
-    <button class="artifact" data-target="infraagent">Live traffic</button>
-    <button class="artifact" data-target="zeroguard">Who can do what</button>
-  </nav>
-
   <main>
     <section class="story-row">
       <span class="story-label">Try a release:</span>
@@ -52,7 +44,15 @@
       <button class="story-btn auto" id="autoplayBtn">▶ Play every story</button>
     </section>
 
-    <div class="scenario-blurb" id="scenarioBlurb">Pick a story, or play them all. Customers stay on the old chatbot until we say go.</div>
+    <section class="scan-row" id="scanRow">
+      <label class="story-label" for="scanRepoUrl">Git repo</label>
+      <input id="scanRepoUrl" class="scan-input" type="text" placeholder="https://github.com/ORG/REPO.git" autocomplete="off" spellcheck="false" />
+      <input id="scanRepoRef" class="scan-input tiny" type="text" value="main" title="git ref" aria-label="git ref" />
+      <input id="scanRepoPath" class="scan-input tiny" type="text" value="." title="path inside repo" aria-label="scan path" />
+      <button class="story-btn auto" id="runBtn">Run</button>
+    </section>
+
+    <div class="scenario-blurb" id="scenarioBlurb">Customers stay on the old chatbot until you pick a story, play them all, or click Run.</div>
 
     <section class="hive" id="hive">
       <div class="hive-label">MAWS hive — supervisor assigns, agents score, one pick</div>
@@ -66,7 +66,7 @@
         <div class="hive-cell" data-agent="RpaAgent">RPA suggest</div>
         <div class="hive-cell" data-agent="AuditAgent">Audit</div>
       </div>
-      <div class="hive-task" id="hiveTask">Waiting for assignment…</div>
+      <div class="hive-task" id="hiveTask">Click a story or Run. The hive stays still until then.</div>
     </section>
 
     <section class="flow-diagram" id="flowDiagram">

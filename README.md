@@ -118,7 +118,10 @@ python3 -m framework.cli examples/checkov_pass.json \
   --telemetry examples/telemetry_ok.json \
   --service chatbot-api
 
-# Your scan
+# Your scan from a git repo — copy examples/scan_target.placeholder.json and set git_url
+python3 -m framework.cli --scan examples/scan_target.placeholder.json
+
+# Or a Checkov file you already have
 checkov -d infra/ -o json > /tmp/checkov.json
 python3 -m framework.cli /tmp/checkov.json \
   --telemetry /tmp/metrics.json \
