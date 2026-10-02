@@ -72,7 +72,7 @@ Artifacts (code, image, IaC, telemetry)
 
 Shipped: `framework/crc/eta.py` — `η`, mean IaC debt, residual-high.
 
-Later (from EB2NIW): code GBDT, container RF+SVM, Isolation Forest telemetry, deterministic NIST/CIS/SOC2 controls, constrained DQN (`dqn_may_allow` is already False on DSA BLOCK).
+Later: code GBDT, container RF+SVM, Isolation Forest telemetry, deterministic NIST/CIS/SOC2 controls, constrained DQN (`dqn_may_allow` is already False on DSA BLOCK).
 
 ### 2.3 ZeroGuard plane
 
@@ -128,7 +128,6 @@ Later: T-GAN / XGBoost φ, Prophet CFA κ, RPA canary/rollback templates.
 | `framework/cli.py` | Shadow / `--enforce` |
 | `framework/webdemo.py` | Stdlib SSE server: animated, auto-playable flow site |
 
-CRC live UI demo remains in `~/Desktop/EB2NIW`.
 
 ### Known heuristic gap
 

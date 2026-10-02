@@ -57,7 +57,7 @@ This folder is the **Checkov-fed gate** (stdlib Python). A separate bank-chatbot
 - Auto-merge of chatbot SQL or IAM
 - Proof that a fictional “Northstar Bank” exists — that name is the demo story only
 
-Paper-reported F1 / MTTD / cost figures belong to the published research systems. Do not paste them into a petition as if this repo measured them. Use the scorecard on **your** incidents before `--enforce`.
+Paper-reported F1 / MTTD / cost figures belong to the published research systems. This repository does not reproduce them. Use the scorecard on **your** incidents before `--enforce`.
 
 ---
 
@@ -238,7 +238,7 @@ See `examples/telemetry_ok.json`, `telemetry_hot.json`, `telemetry_datadog.json`
 | Gate | `framework/infraagent/dsa.py` | Same thresholds via orchestrator |
 | Evidence | `data/audit.jsonl` + outcomes sidecar | `artifacts/audit.jsonl` |
 
-Same join. Different sensors. The petition proof is **this** repo on real Checkov JSON.
+Same join. Different sensors. The evidence is this repo running on real Checkov JSON.
 
 ---
 
@@ -296,7 +296,7 @@ Covers fail/pass/cross-plane stories, shadow vs `--enforce`, Holt capacity, Data
 
 ---
 
-## Petition language (short)
+## Summary
 
 Banks already scan and already watch production. Those signals live in separate tools, so a release can look green in CI and still open a door, grant extra permissions, or move traffic onto a copy that will fail within the hour. This work puts those signals through one orchestrator. The only customer-facing output is go, wait, or stop. The old system stays live until that output is go. Every pick is hash-chained and later scored against what actually happened.
 

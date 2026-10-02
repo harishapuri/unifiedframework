@@ -62,7 +62,7 @@ The valuable claim is not “we trained a giant model.” Banks already have sca
 - Shadow first: log go / wait / stop, then label incidents. `--enforce` only after the scorecard says the log is clean.
 - Conservative default: audit, annotate, block serious issues. Suggest a patch. Do not apply it.
 
-That is the petition-grade story: real inputs where they exist, heuristics first, enforcement only after the log matches real outcomes.
+That is the design principle: real inputs where they exist, heuristics first, enforcement only after the log matches real outcomes.
 
 ---
 
