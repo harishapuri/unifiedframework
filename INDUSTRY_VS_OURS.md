@@ -1,5 +1,7 @@
 # Industry deploy vs our fused chatbot gate
 
+> **Note:** Northstar Bank is a fictional, illustrative scenario. It is not a client, and the story figures are not measured results.
+
 **Northstar Bank** ships a customer chatbot with two copies: **blue** (customers now) and **green** (empty new assistant). The question is not “can we build the image?” It is “when is it safe to move customers?”
 
 Today a bank gets three reports and a human still decides. We produce one **go / wait / stop** before anyone leaves the old chatbot, write that pick in a signed log, and later score whether we were right.
